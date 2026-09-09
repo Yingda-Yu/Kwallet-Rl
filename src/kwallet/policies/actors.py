@@ -216,9 +216,41 @@ POLICY_REGISTRY = {
 
 
 def build_policy(method: str, obs_dim: int, k: int, hidden: int = 256,
-                 embed: int = 32, n_layers: int = 2, **kw) -> BaseActorCritic:
+                 embed: int = 32, n_layers: int = 2, noop_bias: float = 0.0,
+                 **kw) -> BaseActorCritic:
     key = method.lower()
+    # Phase-2 permutation-equivariant set encoders live in set_actors.
+    if key in ("set_ifac", "set_sc_fac"):
+        from .set_actors import build_set_policy
+        return build_set_policy(key, obs_dim, k, hidden=hidden, embed=embed,
+                                n_layers=n_layers, noop_bias=noop_bias, **kw)
     if key not in POLICY_REGISTRY:
-        raise ValueError(f"unknown method '{method}'; choose from {list(POLICY_REGISTRY)}")
-    return POLICY_REGISTRY[key](obs_dim, k, hidden=hidden, embed=embed,
-                                n_layers=n_layers, **kw)
+        raise ValueError(f"unknown method '{method}'; choose from "
+                         f"{list(POLICY_REGISTRY) + ['set_ifac', 'set_sc_fac']}")
+    pol = POLICY_REGISTRY[key](obs_dim, k, hidden=hidden, embed=embed,
+                               n_layers=n_layers, **kw)
+    if noop_bias:
+        apply_noop_bias(pol, float(noop_bias))
+    return pol
+
+
+def apply_noop_bias(policy, bias: float = 2.0):
+    """Conservative prior: favor the flush no-op at initialization.
+
+    The flush head has k wallet-flush actions vs ONE no-op; uniform init makes a
+    fresh policy flush ~k/(k+1) of steps. A small positive bias on the no-op
+    logit starts the policy frugal and lets PPO learn proactive flushes from
+    evidence. Applied to the flush head (IFAC/SC) and to joint entries whose
+    flush component is the no-op (JA). No effect on architecture/capacity.
+    """
+    if bias is None or bias == 0.0:
+        return policy
+    n = policy.n
+    if isinstance(policy, JAPPO):
+        for a_s in range(n):
+            policy.joint_head.bias.data[a_s * n + (n - 1)] += bias
+    elif isinstance(policy, IFAC):
+        policy.flush_head.bias.data[n - 1] += bias
+    elif isinstance(policy, SCFAC):
+        policy.flush_head[-1].bias.data[n - 1] += bias
+    return policy

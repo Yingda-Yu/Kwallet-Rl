@@ -96,6 +96,7 @@ def cmd_train(a) -> int:
     cfg = PPOConfig(
         seed=int(a.seed), device=a.device, method=a.method,
         hidden=int(a.hidden), embed=int(a.embed), n_layers=int(a.n_layers),
+        noop_bias=float(getattr(a, "noop_bias", 0.0)),
         lr=float(a.lr), total_episodes=int(a.episodes),
         rollout_episodes=int(a.rollout), minibatch_size=int(a.mb),
         update_epochs=int(a.epochs), entropy_start=float(a.ent0),
@@ -105,7 +106,8 @@ def cmd_train(a) -> int:
         {"ppo": cfg.__dict__, "env": env_cfg.__dict__,
          "data_manifest_hashes": bundle.manifest.get("hashes", {})},
         indent=2, default=str))
-    trainer = PPOTrainer(cfg, env_cfg, bundle.train, val_pool=bundle.val)
+    trainer = PPOTrainer(cfg, env_cfg, bundle.train, val_pool=bundle.val,
+                         val_episodes=60, ckpt_dir=str(d))
     trainer.train(verbose=True)
     trainer.checkpoint(str(d / "checkpoint.pt"))
     pd.DataFrame(trainer.history).to_csv(d / "history.csv", index=False)
@@ -135,11 +137,17 @@ def _default_ckpt(a):
 
 def cmd_evaluate(a) -> int:
     from .evaluation.parallel import evaluate_regimes_parallel
+    from .baselines.rules import get_rule_fn
     env_cfg = _env_cfg(a)
     bundle = build_pools(episode_length=a.T, train_episodes=5000,
                          val_episodes=300, eval_per_regime=a.pool_eval,
                          base_seed=a.base_seed)
-    kind = "rule" if a.method in RULE_POLICIES else "learned"
+    try:
+        get_rule_fn(a.method)
+        is_rule = True
+    except KeyError:
+        is_rule = False
+    kind = "rule" if is_rule else "learned"
     ckpt = None if kind == "rule" else (a.checkpoint or _default_ckpt(a))
     if kind == "learned" and ckpt is None:
         print("WARNING: no checkpoint -> evaluating UNTRAINED policy", flush=True)
@@ -152,7 +160,7 @@ def cmd_evaluate(a) -> int:
     d = Path(a.out) / a.exp
     d.mkdir(parents=True, exist_ok=True)
     fname = f"eval_{a.method}_C{a.C}_k{a.k}_F{a.F}"
-    if a.method not in RULE_POLICIES:
+    if kind != "rule":
         fname += f"_s{a.seed}"
     df.to_csv(d / (fname + ".csv"), index=False)
     summ = summarize(df)
@@ -212,7 +220,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("train")
     add_env(sp)
     sp.add_argument("--method", default="sc_fac",
-                    choices=["ja_ppo", "ifac", "sc_fac"])
+                    choices=["ja_ppo", "ifac", "sc_fac",
+                             "set_ifac", "set_sc_fac"])
     sp.add_argument("--seed", type=int, default=123)
     sp.add_argument("--episodes", type=int, default=3000)
     sp.add_argument("--rollout", type=int, default=8)
@@ -224,6 +233,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--n-layers", type=int, default=2)
     sp.add_argument("--ent0", type=float, default=0.02)
     sp.add_argument("--ent1", type=float, default=0.001)
+    sp.add_argument("--noop-bias", dest="noop_bias", type=float, default=0.0)
     sp.add_argument("--device", default="cpu")
     sp.add_argument("--pool-train", type=int, default=5000)
     sp.add_argument("--pool-eval", type=int, default=200)
@@ -232,7 +242,10 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("evaluate")
     add_env(sp)
     sp.add_argument("--method", default="sc_fac",
-                    choices=["ja_ppo", "ifac", "sc_fac", "FA", "FWF"])
+                    choices=["ja_ppo", "ifac", "sc_fac", "set_ifac",
+                             "set_sc_fac", "FA", "FWF", "ROT",
+                             "BFP0.3", "BFP0.5", "BFP0.8",
+                             "BFT0.3", "BFT0.5"])
     sp.add_argument("--seed", type=int, default=123)
     sp.add_argument("--checkpoint", default=None)
     sp.add_argument("--hidden", type=int, default=256)

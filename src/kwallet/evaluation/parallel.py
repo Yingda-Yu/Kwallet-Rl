@@ -38,8 +38,8 @@ def _init_worker(env_kwargs: dict, method: str, kind: str,
         pol.eval()
         _G["policy"] = pol
     else:
-        from ..baselines.rules import RULE_POLICIES
-        _G["policy"] = RULE_POLICIES[method]
+        from ..baselines.rules import get_rule_fn
+        _G["policy"] = get_rule_fn(method)
     _G["env_cfg"] = env_cfg
     _G["kind"] = kind
 

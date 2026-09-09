@@ -27,17 +27,22 @@ SEEDS_KSCALE = [123, 323, 532]
 CS_MAIN = [800, 900, 1000, 1200]
 LEARNED = ["ja_ppo", "ifac", "sc_fac"]
 RULES = ["FA", "FWF"]
+RULES_STRONG = ["FA", "FWF", "ROT", "BFP0.5"]
 
 
 def specs_for(tier: str):
     """Return list of run dicts."""
     runs = []
     if tier == "smoke":
-        Cs, seeds, eps = [1200], [123], 64
+        Cs, seeds, eps, rules, hid = [1200], [123], 64, RULES, 64
     elif tier == "pilot":
-        Cs, seeds, eps = CS_MAIN, [123, 323], 800
+        Cs, seeds, eps, rules, hid = CS_MAIN, [123, 323], 800, RULES, 256
+    elif tier == "main":
+        # Main controlled comparison: 3 flat learned methods x 4 capacities x
+        # 5 seeds (3000 ep), plus native and validation-selected strong rules.
+        Cs, seeds, eps, rules, hid = CS_MAIN, SEEDS_MAIN[:5], 3000, RULES_STRONG, 256
     elif tier == "full":
-        Cs, seeds, eps = CS_MAIN, SEEDS_MAIN, 3000
+        Cs, seeds, eps, rules, hid = CS_MAIN, SEEDS_MAIN, 3000, RULES_STRONG, 256
     else:
         raise ValueError(tier)
     for C in Cs:
@@ -45,9 +50,8 @@ def specs_for(tier: str):
             for s in seeds:
                 runs.append(dict(kind="learned", method=m, C=C, k=24, F=3,
                                  T=1000, seed=s, episodes=eps,
-                                 hidden=256 if tier != "smoke" else 64,
-                                 embed=32))
-        for r in RULES:
+                                 hidden=hid, embed=32))
+        for r in rules:
             runs.append(dict(kind="rule", method=r, C=C, k=24, F=3, T=1000))
     return runs
 
@@ -112,7 +116,8 @@ def run_one(exp, r, threads, force, logdir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", choices=["smoke", "pilot", "full"], default="smoke")
+    ap.add_argument("--tier", choices=["smoke", "pilot", "main", "full"],
+                    default="smoke")
     ap.add_argument("--exp", default=None)
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--threads", type=int, default=8)

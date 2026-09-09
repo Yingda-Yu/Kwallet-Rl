@@ -87,3 +87,34 @@ def fa_action(env):
 
 
 RULE_POLICIES = {"FA": fa_action, "FWF": fwf_action}
+
+
+def get_rule_fn(name: str):
+    """Resolve a rule name to a callable(env)->(a_settle,a_flush).
+
+    Supports native rules FA/FWF, the strong rotation rule ROT, and
+    parameterised threshold rules encoded as ``BFP<float>`` (best-fit +
+    PROACTIVE threshold flush) and ``BFT<float>`` (best-fit + reactive flush),
+    e.g. ``BFP0.5``. Thresholds are selected on validation data.
+    """
+    key = name.strip()
+    if key in RULE_POLICIES:
+        return RULE_POLICIES[key]
+    from .rules_strong import (rotate_settle_action, bestfit_proactive_action,
+                               bestfit_threshold_action)
+    if key.upper() == "ROT":
+        return rotate_settle_action
+    for tag, ctor in (("BFP", bestfit_proactive_action),
+                      ("BFT", bestfit_threshold_action)):
+        if key.upper().startswith(tag):
+            try:
+                thr = float(key[len(tag):])
+            except ValueError:
+                break
+            return ctor(thr)
+    raise KeyError(f"unknown rule '{name}'; expected FA, FWF, ROT, BFP<f>, BFT<f>")
+
+
+# Names valid on the CLI evaluate path.
+RULE_NAMES = ["FA", "FWF", "ROT", "BFP0.3", "BFP0.5", "BFP0.8",
+              "BFT0.3", "BFT0.5"]

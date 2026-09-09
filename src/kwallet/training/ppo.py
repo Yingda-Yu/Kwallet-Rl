@@ -32,6 +32,7 @@ class PPOConfig:
     hidden: int = 256
     embed: int = 32
     n_layers: int = 2
+    noop_bias: float = 0.0
     # PPO
     lr: float = 3e-4
     gamma: float = 0.99
@@ -62,8 +63,11 @@ def set_seed(seed: int):
 
 class PPOTrainer:
     def __init__(self, cfg: PPOConfig, env_cfg: EnvConfig, train_pool: np.ndarray,
-                 val_pool: Optional[np.ndarray] = None, val_episodes: int = 24):
+                 val_pool: Optional[np.ndarray] = None, val_episodes: int = 24,
+                 ckpt_dir: Optional[str] = None):
         self.cfg = cfg
+        self.ckpt_dir = ckpt_dir
+        self._best_val = -float("inf")
         self.env_cfg = env_cfg
         self.device = torch.device(cfg.device if cfg.device == "cpu"
                                    or torch.cuda.is_available() else "cpu")
@@ -71,7 +75,8 @@ class PPOTrainer:
         self.env = KWalletEnv(env_cfg)
         self.policy = build_policy(
             cfg.method, env_cfg.obs_dim, env_cfg.k,
-            hidden=cfg.hidden, embed=cfg.embed, n_layers=cfg.n_layers
+            hidden=cfg.hidden, embed=cfg.embed, n_layers=cfg.n_layers,
+            noop_bias=cfg.noop_bias
         ).to(self.device)
         self.opt = optim.Adam(self.policy.parameters(), lr=cfg.lr)
         self.train_pool = train_pool
@@ -84,6 +89,7 @@ class PPOTrainer:
         self._order = self._order_rng.permutation(self.n_train)
         self.episode = 0
         self.history = []
+        self._next_val = cfg.eval_every_episodes
 
     # ------------------------------------------------------------------
     def _next_stream(self) -> np.ndarray:
@@ -203,6 +209,21 @@ class PPOTrainer:
             moneys.append(info["money"])
         return float(np.mean(moneys))
 
+    def _maybe_eval_val(self) -> float:
+        do = (self.episode >= self._next_val or
+               self.episode >= self.cfg.total_episodes)
+        if do and self.val_pool is not None:
+            val = self._eval_val()
+            while self._next_val <= self.episode:
+                self._next_val += self.cfg.eval_every_episodes
+            if np.isfinite(val) and self.ckpt_dir is not None:
+                os.makedirs(self.ckpt_dir, exist_ok=True)
+                if val > self._best_val:
+                    self._best_val = val
+                    self.checkpoint(os.path.join(self.ckpt_dir, "best_checkpoint.pt"))
+            return val
+        return float("nan")
+
     # ------------------------------------------------------------------
     def train(self, eval_fn=None, verbose: bool = True) -> Dict:
         start = time.time()
@@ -220,17 +241,18 @@ class PPOTrainer:
                 "value_loss": stats["value_loss"],
                 "entropy": stats["entropy"],
                 "approx_kl": stats["approx_kl"],
-                "val_money": self._eval_val() if (
-                    self.episode % self.cfg.eval_every_episodes == 0
-                    or self.episode >= self.cfg.total_episodes) else float("nan"),
+                "val_money": self._maybe_eval_val(),
                 "elapsed": time.time() - start,
             }
             self.history.append(rec)
+            valstr = ""
+            if np.isfinite(rec.get("val_money", float("nan"))):
+                valstr = f" VAL={rec['val_money']:9.1f}"
             if verbose:
                 print(f"[{self.cfg.method}|seed{self.cfg.seed}] ep={self.episode:5d} "
                       f"money={rec['train_money_mean']:9.1f} acc={rec['train_accept_mean']:9.1f} "
                       f"flush={rec['train_flush_mean']:6.1f} vL={rec['value_loss']:.4f} "
-                      f"ent={rec['entropy']:.3f} kl={rec['approx_kl']:.4f} "
+                      f"ent={rec['entropy']:.3f} kl={rec['approx_kl']:.4f}{valstr} "
                       f"t={rec['elapsed']:.0f}s", flush=True)
         return {"history": self.history, "episode": self.episode}
 
