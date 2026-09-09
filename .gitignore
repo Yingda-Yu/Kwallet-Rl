@@ -23,3 +23,7 @@ legacy/
 src/ideaextra/results/
 src/ideaextra/*.txt
 *.png
+# research artifacts / build
+runs/
+*.egg-info/
+paper/icassp2027/
