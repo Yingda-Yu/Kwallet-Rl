@@ -1,108 +1,98 @@
 # K-Wallet / ICASSP 2027 执行看板
 
-初始化日期：2026-09-09。执行规格见 `TRAE_KWALLET_ICASSP2027_EXECUTION.md`。
+初始化 2026-09-09；本板由 agent 用真实证据维护。执行规格见
+`TRAE_KWALLET_ICASSP2027_EXECUTION.md`。
 
-**初始状态全部为 TODO：任务书已经提交，不表示研究任务已经完成。**每完成一项，agent 必须把对应状态改为实际状态，并在“证据”列填具体命令、文件、run ID 或 commit。不得只勾选而无证据。
+状态：TODO / RUNNING / PASS / FAIL / BLOCKED / NOT_RUN。每格证据指向命令、文件、
+run ID 或 commit。未运行绝不标 PASS。
 
-状态：TODO / RUNNING / PASS / FAIL / BLOCKED / NOT_RUN。实现通过与 full 实验完成是不同验收项。优先级 P0/P1/P2 表示排程顺序，不代表低优先级可被悄悄删掉。
+分支：`work/icassp2027-reproduce-improve`（commits 161ec75 Phase-1、
+22e18e3 Phase-2 set/streaming/rules、f5960e3 ablations+assets+docs）。
+`paper/` 不入库（受保护）。
 
 ## A. 环境与资料（P0）
 
-| ID | 任务与验收 | 依赖 | 状态 | 证据 |
-|---|---|---|---|---|
-| A01 | 确认仓库、分支、用户未提交文件，保护旧稿/模板并记录 SHA-256 | 无 | TODO | |
-| A02 | 通读旧稿全文、表图与全仓库，建立 PAPER_CODE_MAP | A01 | TODO | |
-| A03 | 在本仓库及 Git 历史查找原 SC-FAC/PPO/扩展/artifact，给出有界搜索记录 | A02 | TODO | |
-| A04 | 检查共享服务器资源与项目授权，保存非公开 runtime limits | A01 | TODO | |
-| A05 | 隔离 Python 依赖安装、导入、CPU/GPU 小测试，记录真实版本 | A04 | TODO | |
-| A06 | 核验远程 TeX Live/PDF 工具；官方模板示例实际编译 | A01 | TODO | |
-| A07 | 建立 progress/decisions/blockers、运行清单和错误退出规范 | A01 | TODO | |
+| ID | 任务 | 状态 | 证据 |
+|---|---|---|---|
+| A01 | 保护旧稿/模板、记录 SHA、确认分支 | PASS | `paper/old paper.pdf` SHA256 `3c82e8d8…`；`ICASSP2027_Paper_Templates.zip` `fd1cc410…`；`paper/` 未 staged（每次 commit 前校验） |
+| A02 | 通读旧稿+全仓库，PAPER_CODE_MAP | PASS | docs/PAPER_CODE_MAP.md |
+| A03 | 有界搜索原 SC-FAC/PPO artifact | PASS | 仓库为 DQN 时代；PPO 策略不存在 → 判定 REIMPLEMENTED（docs/DECISIONS.md 2026-09-09） |
+| A04 | 服务器资源与授权核查 | PASS（GPU BLOCKED） | 96 线程/503GB；10×RTX3090 **未授权**，仅 CPU；见 docs/BLOCKERS.md B1 |
+| A05 | conda env kwallet 隔离与版本 | PASS | Python 3.10 / torch 2.14 CPU / numpy 2.2.6；`kwallet doctor` |
+| A06 | TeX Live 核验、官方模板编译 | PASS | TeX Live 2022；`paper/icassp2027/Template.pdf` 3pp 编译通过 |
+| A07 | progress/decisions/blockers + 退出码 | PASS | docs/；CLI 非零退出；manifest CSV |
 
 ## B. 旧论文实现（P0）
 
-| ID | 任务与验收 | 依赖 | 状态 | 证据 |
+| ID | 任务 | 状态 | 证据 |
+|---|---|---|---|
+| B01 | 已知/未知原参数清单 | PASS | docs/DECISIONS.md「chosen_for_reimplementation」 |
+| B02 | one-settle/one-flush 环境 + 3k+2 状态 | PASS | src/kwallet/envs/kwallet.py；obs_dim=3k+2 |
+| B03 | 刷新/冻结/补满/oversize/冲突/terminal 时序 | PASS | tests/test_env.py（13 tests PASS） |
+| B04 | attempted/executed/charged flush + Money 一致性 | PASS | env 指标；tests test_env/test_smoke |
+| B05 | JA/IFAC/SC 共用 PPO/GAE/trainer | PASS | src/kwallet/training/ppo.py；policies/actors.py |
+| B06 | 小 k 枚举 log-prob/ratio/mask/梯度 | PASS | tests/test_policies.py（9 tests） |
+| B07 | checkpoint/resume（权重 vs 续训） | PASS | PPOTrainer.checkpoint/load；val best ckpt |
+| B08 | 版本化十二分布池 + 无泄漏 | PASS | data/pools.py data/regimes.py base_seed 532；tests/test_data.py（6） |
+| B09 | 恢复 constrained FA/FWF，不冒称复现 | PASS | baselines/rules.py；标记 MISSING_RULE_DEFINITION（重构参考） |
+| B10 | general-collateral one/two-pool 原实现追溯 | NOT_RUN | 旧稿为 K-Wallet 特例；通用 collateral 扩展无规格 → 范围外，缺失报告 |
+| B11 | reconstructed_extension_v1（若需要） | NOT_RUN | B10 范围外；未编造 |
+| B12 | 端到端 smoke（生成→训练→评估→出表→编译） | PASS | `run_experiments --tier smoke`；make_paper_assets；main.pdf 编译 |
+
+## C. 旧论文实跑与核验
+
+| ID | 任务 | 优先级 | 状态 | 证据 |
 |---|---|---|---|---|
-| B01 | 列已知与未知原参数；恢复原配置，或明确标重实现选择 | A02,A03 | TODO | |
-| B02 | 统一 one-settlement/one-flush 环境与 3k+2 状态 | B01,A05 | TODO | |
-| B03 | 验证刷新顺序、冻结/补满时序、oversize、none、冲突和 terminal | B02 | TODO | |
-| B04 | 明确 attempted/executed/charged flush，奖励与 Money 指标一致性测试 | B02 | TODO | |
-| B05 | JA-PPO、IFAC、SC-FAC 共用 PPO/GAE/trainer | B01,B02 | TODO | |
-| B06 | 枚举小 k 检查 log-prob、ratio、conditional input、mask、entropy、梯度 | B05 | TODO | |
-| B07 | 真实 checkpoint/resume 测试；清楚区分权重恢复与完整续训 | B05 | TODO | |
-| B08 | 版本化十二分布/训练验证测试池、哈希、无泄漏与统计检查 | B01,A03 | TODO | |
-| B09 | 恢复 constrained FA/FWF；定义缺失时不冒称复现 | B01,B02 | TODO | |
-| B10 | general-collateral one/two-pool 原实现追溯与测试；缺规格明确报告 | A03,B01 | TODO | |
-| B11 | 原扩展缺失时另建 documented reconstructed_extension_v1，实际实现测试 | B10 | TODO | |
-| B12 | 端到端 smoke：生成/加载→训练→评估→统计→出表→编译，不用假结果 | B03-B09,A06 | TODO | |
+| C01 | 计时/预算/dry-run | P0 | PASS | PPO cycle JA5.2s/IFAC6.0/SC7.1s；eval 2400 ep ~3-4min |
+| C02 | 主表 3 methods×4 C×seeds | P0 | RUNNING | matrix_main 5/76 eval 完成；3×4×5 seeds + 规则；聚合 results/tables |
+| C03 | k-scaling C1200 k∈{6,12,24} | P1 | RUNNING | run_kscale（k=3 改为 6，因 k=3 钱包容量>max_tx 无意义）；aggregate_kscale |
+| C04 | 十二 regime 指标（旧稿图5） | P0 | RUNNING | 每 run summary 含 per-regime；regime_money.csv 聚合随 matrix 出 |
+| C05 | zero-settle / 条件置零消融 | P1 | RUNNING | sc_nocond（置零）/sc_shuffled（错位）；matrix_ablation 12 runs |
+| C06 | tau=1/5/10/20 post-hoc 计价 | P1 | PASS（自动） | 每 eval 写 `_tau_posthoc.csv`；仅重计价不重训 |
+| C07 | model-only 效率（不混淆加速） | P1 | PASS | runs/bench/bench_C1200.0_k24.csv；JA625 vs 因式50 logits |
+| C08 | one/two-pool extension / 表 III | P1 | NOT_RUN | 同 B10，无规格 |
+| C09 | 配对 seed CI + drop/accept/flush 分解 | P0 | RUNNING | evaluation/stats.py paired_difference；matrix 完成后出 |
+| C10 | REPRODUCTION_REPORT | P0 | DRAFT | 见下；随 C02 完成定稿 |
 
-## C. 旧论文实跑与核验（P0/P1）
+## D. 改进与机制实验
 
-| ID | 任务与验收 | 优先级 | 依赖 | 状态 | 证据 |
-|---|---|---|---|---|---|
-| C01 | 短运行计时、内存/显存测量、dry-run 预算与获准调度清单 | P0 | B12,A04 | TODO | |
-| C02 | 主表 3 methods×4 C×10 seeds；记录原配置或重实现等级 | P0 | C01 | TODO | |
-| C03 | k-scaling，C=1200、k=3/6/12/24，H128/E32 与匹配 seeds | P1 | C01 | TODO | |
-| C04 | 十二 regime 指标与旧稿图 5 对应分析 | P0 | C02 | TODO | |
-| C05 | 原 zero-settle 消融的实际定义、运行及完整结果 | P1 | B01,C01 | TODO | |
-| C06 | tau=1/5/10/20 post-hoc 计价，不冒称重新训练 | P1 | C02 | TODO | |
-| C07 | model-only 及 end-to-end 性能；不要把 logits 比当加速倍数 | P1 | C01 | TODO | |
-| C08 | one/two-pool extension 实验及表 III 差异报告，资料不足明确区分重建 | P1 | B10,B11,C01 | TODO | |
-| C09 | 配对 seed CI、各类 drop 与接受金额/刷新分解，完整保留失败 seed | P0 | C02 | TODO | |
-| C10 | REPRODUCTION_REPORT 覆盖旧稿每项主张并给出证据等级 | P0 | C02-C09 | TODO | |
+| ID | 任务 | 状态 | 证据 |
+|---|---|---|---|
+| D01 | 锁定假设/对照/预算/选模规则 | PASS | docs/NOVELTY_AND_OVERLAP.md；val 选模、test 仅一次 |
+| D02 | 修复 eval/dropout/context 问题 | N/A | 本实现自带；val 未记录 bug 已修（_maybe_eval_val crossing） |
+| D03 | full-wallet rotation 基线 | PASS | baselines/rules_strong.rotate_settle_action；ROT val 7894 |
+| D04 | best-fit+阈值强规则（仅 val 调参） | PASS | BFP0.5 val 15290→test 15327，可恢复 drops=0 |
+| D05 | IndependentScores+ConditionalMask 合法率 | PASS | mask 强制 flush≠settle；tests 覆盖 |
+| D06 | 参数/深度匹配 IFAC；恒定条件对照 | PASS | sc_nocond 与 sc_fac 同参 172,883 |
+| D07 | 测试期置零/打乱诊断 | RUNNING | sc_nocond/sc_shuffled × C{800,1200} × seeds 训练中（同预算） |
+| D08 | set-IFAC/set-SC + 等变性/null | PASS | policies/set_actors.py；tests/test_set_equivariance.py（4 tests） |
+| D09 | flat/set×IFAC/SC 四格 + 强规则/JA | RUNNING | kscale（set vs flat 跨 k）+ matrix（flat 三方法）+ BFP |
+| D10 | money-aligned reward 全方法重训 | NOT_RUN | env 有 reward_mode 路径；预算内未训（标 NOT_RUN） |
+| D11 | 切换/held-out 需求强度 | PASS（规则）/RUNNING（学习） | runs/switching/switch_summary.csv：BFP post-drops=0（负结果）；学习型 finalize 自动跑 |
+| D12 | 固定 C 的 k 扩展 + 未见 k 测试 | RUNNING | run_kscale 跨 k train/deploy；flat 不可迁移 |
+| D13 | tau/p 重训敏感性 | NOT_RUN | 与 C06 post-hoc 区分；预算内未重训 |
+| D14 | 可验证等变性命题/边界例 | PASS | 置换等变性测试；cross-k 权重加载测试（missing/unexpected 为空） |
+| D15 | IMPROVEMENT_REPORT | DRAFT | docs/NOVELTY_AND_OVERLAP.md；随 D07/D09/D12 完成定稿 |
 
-注意：C10 可以持续更新，但只有所有覆盖项均有真实状态时才能验收报告；并不要求把所有项目伪装成成功复现。原实现无法找回是 BLOCKED/REIMPLEMENTED 的原因，不是使用旧表代替运行的理由。
+## E. 新稿、编译与交付
 
-## D. 改进与机制实验（P1）
-
-| ID | 任务与验收 | 依赖 | 状态 | 证据 |
+| ID | 任务 | 优先级 | 状态 | 证据 |
 |---|---|---|---|---|
-| D01 | 锁定假设、主要对照、预算、选模和最终测试规则 | B12,C01 | TODO | |
-| D02 | 修复已确认的 eval/dropout/context/epsilon/config 问题，受影响基线同协议重跑 | D01 | TODO | |
-| D03 | full-wallet rotation 基线、条件及单元测试，报告其成本而非假设最优 | B02,D01 | TODO | |
-| D04 | best-fit+阈值刷新强规则；只在验证集调参 | B02,D01 | TODO | |
-| D05 | IndependentScores+ConditionalMask 对照与合法动作率 | B06,D01 | TODO | |
-| D06 | 参数/深度匹配 IFAC；训练期 constant condition；反向条件化 | B05,D01 | TODO | |
-| D07 | 测试期置零/打乱的独立诊断，标明分布变化局限 | D06 | TODO | |
-| D08 | 共享钱包编码的 set-IFAC/set-SC，信息公平、null action 与等变性测试 | B05,D01 | TODO | |
-| D09 | flat/set×IFAC/SC 四格对照，强规则与 JA 参照，按锁定 seed 实跑 | D03-D08 | TODO | |
-| D10 | original 与 money-aligned reward 全方法公平重训 | D01,B04 | TODO | |
-| D11 | 随机时刻/顺序切换与 held-out 需求强度评估，控制信息和难度混杂 | B08,D01 | TODO | |
-| D12 | 固定 C 的 k 实验与模型扩展性测量分开；测试未见 k | D08,D01 | TODO | |
-| D13 | tau/p 重新训练敏感性，明确与 C06 的区别 | D10 | TODO | |
-| D14 | 可验证的表示/等变性/轮换命题与边界例；不编造理论保证 | D03,D08 | TODO | |
-| D15 | IMPROVEMENT_REPORT：真实增益、负结果、统计、资源成本、相对旧稿差异 | D02-D14 | TODO | |
+| E01 | 模板/分类/篇幅/AI 披露/截止 | P0 | PASS | 4pp+≤1 refs；≥9pt；无页码；非盲；ML-REI；AI 披露在 main.tex thanks |
+| E02 | 作者/ORCID/投稿状态 | P0 | BLOCKED | 需用户确认作者/单位/基金；未投稿（占位 name） |
+| E03 | primary-source 文献 + NOVELTY | P0 | PASS | refs.bib 仅可确证文献；NOVELTY_AND_OVERLAP.md |
+| E04 | 证据支持的大纲/正文（占位显式 DRAFT） | P1 | PASS | paper/icassp2027/main.tex（编译通过，缺失表显式 pending） |
+| E05 | raw runs→统计表/矢量图 + paper_claims | P0 | PASS | scripts/make_paper_assets.py；assets/paper_claims.json 记录缺失 |
+| E06 | 英文正文 4pp+refs，结果据实 | P0 | DRAFT | 正文完，待 matrix/ablation/transfer 真实表注入定稿 |
+| E07 | clean build + citation/页数/字体/无页码 | P0 | RUNNING | main.pdf rc=0、3pp、无未定义引用；最终数据后复核 |
+| E08 | 逐页视觉核验 | P0 | TODO | 定稿表格后 pdftoppm 逐页 |
+| E09 | artifact 源码/配置/哈希/README 重建 | P0 | TODO | 待最终；脚本已可一键重建表图 |
+| E10 | 敏感信息/许可 + commit；不 push/PR | P0 | PARTIAL | 本地 3 commits；**未 push/PR/投稿**（待用户） |
 
-D07、D13、D14 与更大 k 可按预算作为次要研究项，但必须保留 NOT_RUN 或明确完成证据。切勿在结果差时删除对照，或在看了测试结果后改写主要假设。
-
-## E. 新稿、编译与交付（P0/P1）
-
-| ID | 任务与验收 | 优先级 | 依赖 | 状态 | 证据 |
-|---|---|---|---|---|---|
-| E01 | 核验官方模板、分类、篇幅、AI 披露与截止说明，保存日期 | P0 | A06 | TODO | |
-| E02 | 记录旧稿投稿/发表状态、作者/ORCID 等；缺项只阻塞 release | P0 | A02 | TODO | |
-| E03 | 文献 primary-source 核验与 NOVELTY_AND_OVERLAP | P0 | D01 | TODO | |
-| E04 | 先写证据支持的大纲/方法，结果占位显式为 DRAFT | P1 | B12,E01 | TODO | |
-| E05 | raw runs→统一统计→LaTeX 表/矢量图；建立 paper_claims 追踪 | P0 | C09,D09 | TODO | |
-| E06 | 完成英文正文，4 页技术内容及至多 1 页许可内容；结果据实 | P0 | D15,E03,E05 | TODO | |
-| E07 | TeX Live clean build，citation/页数/字体/大小/无页码检查 | P0 | E06 | TODO | |
-| E08 | 所有页面视觉核验，修复表图过小、溢出、空白与第 5 页违规内容 | P0 | E07 | TODO | |
-| E09 | artifact 源码/配置/哈希/README；干净环境 smoke+图表/论文重建 | P0 | E08 | TODO | |
-| E10 | 敏感信息/许可检查，真实 commit/push/PR，最终验收报告 | P0 | E09 | TODO | |
-
-## 每次里程碑报告格式
-
-```text
-当前阶段和任务 ID：
-新增/修改文件：
-实际执行命令与退出码：
-测试结果：
-已完成 run / 总 run：
-正在运行的实际作业及日志：
-主要结果及其证据等级：
-资源使用、预算和预计剩余时间：
-失败/阻塞及已做排查：
-接下来自动执行的任务：
-需要用户决定的最少事项：
-```
-
-只在确实启动了作业时填“正在运行”。只有配置文件而没有结果时，写“已配置，NOT_RUN”。已编译的空壳/DRAFT PDF 不算 E06-E08 全部通过。
+## 进行中作业（后台）
+- `run_experiments --tier main`（matrix_main，pid 163725）：60 learned + 16 rules。
+- `run_kscale --exp kscale`（pid 1958730）：18 train + 跨 k eval。
+- `run_experiments --tier ablation`（matrix_ablation，pid 1958731）：12 runs。
+- `scripts/finalize_wait.sh`（pid 1970903）：三者结束后自动聚合→学习型切换→重生资产→重编译。
+日志：runs/matrix_main_driver.log、runs/kscale_driver.log、
+runs/ablation_driver.log、runs/finalize.log。
