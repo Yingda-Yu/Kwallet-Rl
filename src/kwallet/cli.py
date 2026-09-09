@@ -179,7 +179,8 @@ def cmd_evaluate(a) -> int:
 def cmd_bench(a) -> int:
     env_cfg = _env_cfg(a)
     rows = []
-    for m in ["ja_ppo", "ifac", "sc_fac"]:
+    for m in ["ja_ppo", "ifac", "sc_fac", "sc_nocond", "sc_shuffled",
+              "set_ifac", "set_sc_fac"]:
         rows.append(benchmark_policy(m, env_cfg.obs_dim, env_cfg.k,
                                      hidden=int(a.hidden), embed=int(a.embed),
                                      device=a.device, repeats=a.repeats))
@@ -220,8 +221,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("train")
     add_env(sp)
     sp.add_argument("--method", default="sc_fac",
-                    choices=["ja_ppo", "ifac", "sc_fac",
-                             "set_ifac", "set_sc_fac"])
+                    choices=["ja_ppo", "ifac", "sc_fac", "sc_nocond",
+                             "sc_shuffled", "set_ifac", "set_sc_fac"])
     sp.add_argument("--seed", type=int, default=123)
     sp.add_argument("--episodes", type=int, default=3000)
     sp.add_argument("--rollout", type=int, default=8)
@@ -242,8 +243,9 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("evaluate")
     add_env(sp)
     sp.add_argument("--method", default="sc_fac",
-                    choices=["ja_ppo", "ifac", "sc_fac", "set_ifac",
-                             "set_sc_fac", "FA", "FWF", "ROT",
+                    choices=["ja_ppo", "ifac", "sc_fac", "sc_nocond",
+                             "sc_shuffled", "set_ifac", "set_sc_fac",
+                             "FA", "FWF", "ROT",
                              "BFP0.3", "BFP0.5", "BFP0.8",
                              "BFT0.3", "BFT0.5"])
     sp.add_argument("--seed", type=int, default=123)

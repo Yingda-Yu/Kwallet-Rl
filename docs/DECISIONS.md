@@ -65,3 +65,51 @@ Evidence labels used across docs:
 ## 2026-09-09 — Time feature convention
 - t/T uses 1-based progress (decision index t' in 0..T-1 presented as
   (t'+1)/T, so the final decision = 1.0). Documented and unit-tested.
+
+## 2026-09-10 — Strong-baseline correction (NEW_EXPERIMENT, validation-selected)
+- Rule threshold sweep on VALIDATION only (300 ep): proactive best-fit
+  BFP0.5 best (val Money 15290 +/- 135); reactive BFT* degenerates to FA.
+  Threshold 0.5 chosen on val, frozen, then evaluated once on test.
+- C=1200 deterministic TEST Money: FA 8826 (recoverable drops 255),
+  FWF 7640 (286), BFP0.5 **15327 with recoverable drops = 0** (accept 20724,
+  i.e. essentially every transaction that fits in any wallet). A single
+  balance-feedback threshold is near-optimal on stationary i.i.d. streams.
+- Consequence: the old manuscript compares learned policies only against
+  naive rules that never flush proactively. We add BFP0.5 as the honest strong
+  baseline and do NOT claim RL beats tuned rules on absolute Money.
+
+## 2026-09-10 — Three-way ordering + mechanistic staircase (REIMPLEMENTED)
+- Deterministic C=1200 test, seed 123, 3000-episode PPO, identical protocol:
+  JA-PPO Money 11604 (accept 16654, flush 505, drops 512 -> ~112 recoverable),
+  IFAC 13118 (accept 17960, flush 484, drops 474 -> ~74 recoverable),
+  SC-FAC 13210 (accept 19172, flush 596, drops 442 -> ~42 recoverable),
+  BFP0.5 15327 (accept 20724 = feasible ceiling, recoverable drops 0).
+  (Structural oversize floor = 400.3 drops/episode for all policies.)
+- Accepted value rises monotonically JA->IFAC->SC->ceiling and recoverable
+  drops fall 112->74->42->0: each structural change closes the gap to the
+  feasible ceiling. Settle-conditioning recovers ~+1.2k accepted value vs IFAC
+  at the cost of ~+112 flushes; at tau=10 Money is within noise (13210 vs
+  13118) but the acceptance / recoverable-drop gap is consistent, and grows
+  at lower flush price (tau=1: SC 18576 vs IFAC 17476).
+- Ordering claim: factorized (IFAC/SC) clearly beats joint (JA) in Money and
+  sample efficiency; SC vs IFAC advantage is primarily acceptance/recovery,
+  not raw Money at the paper's tau. Multi-seed matrix_main confirms stats.
+
+## 2026-09-10 — Streaming/OOD is a NEGATIVE result for the "RL adapts" hypothesis
+- Regime-switch streams (calm<->burst, early/late change points), n=200:
+  BFP0.5 keeps post-switch recoverable drops = 0.0 on EVERY direction/timing;
+  FA/FWF accumulate 59-189. Because balance is a sufficient statistic, a fixed
+  feedback threshold already absorbs distribution shift under the paper
+  observation. Persisted in runs/switching/switch_summary.csv.
+- We therefore do NOT claim learned policies adapt better to OOD shifts.
+  Phase-2 novelty rests on: (1) settle-conditioned factorization (mechanism +
+  acceptance), (2) permutation-equivariant set ENCODER with zero-shot
+  cross-k transfer (mechanically verified; weights independent of k),
+  (3) the strong-baseline/efficiency correction.
+
+## 2026-09-10 — Efficiency / output-logit scaling (ARTIFACT_REGENERATED)
+- bench C1200 k24: JA 245,874 params / 625 logits; IFAC 98,099 / 50;
+  SC-FAC & ablations 172,883 / 50; Set-IFAC 135,437 / 50; Set-SC-FAC
+  135,949 / 50. Set-policy params are independent of k (cross-k transferable);
+  flat policy params change with k and cannot transfer. Per-step latency
+  0.4-1.1 ms CPU. runs/bench/bench_C1200.0_k24.csv.

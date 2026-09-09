@@ -208,10 +208,53 @@ def logits_argmax(dist: Categorical) -> torch.Tensor:
     return torch.argmax(dist.logits, dim=-1)
 
 
+class SCNocond(SCFAC):
+    """Ablation: flush head receives a ZERO settle embedding.
+
+    Architecturally identical to SC-FAC (same parameters/heads) but the
+    settle->flush information path is severed, so flush cannot depend on the
+    chosen settle wallet. Param-matched control for the conditioning claim.
+    """
+    method = "sc_nocond"
+
+    def _flush_logits(self, h, a_settle):
+        e = torch.zeros(h.shape[0], self.embed, device=h.device, dtype=h.dtype)
+        return self.flush_head(torch.cat([h, e], dim=-1))
+
+
+class SCShuffled(SCFAC):
+    """Ablation: flush head receives the embedding of the WRONG settle wallet.
+
+    The settle->flush pathway is present and parametrised, but it reads a fixed
+    permutation of the settle index, destroying the correct association while
+    preserving head capacity. If true conditioning helps, this should track the
+    no-condition/IFAC baseline rather than SC-FAC.
+    """
+    method = "sc_shuffled"
+
+    def __init__(self, obs_dim, k, hidden=256, embed=32, n_layers=2):
+        super().__init__(obs_dim, k, hidden, embed, n_layers)
+        g = torch.Generator().manual_seed(12345)
+        # fixed derangement (no fixed points) over the n settle choices
+        perm = torch.randperm(self.n, generator=g)
+        for i in range(self.n):
+            if perm[i].item() == i:
+                j = (i + 1) % self.n
+                perm[i], perm[j] = perm[j], perm[i]
+        self.register_buffer("_perm", perm)
+
+    def _flush_logits(self, h, a_settle):
+        wrong = self._perm[a_settle]
+        e = self.settle_embed(wrong)
+        return self.flush_head(torch.cat([h, e], dim=-1))
+
+
 POLICY_REGISTRY = {
     "ja_ppo": JAPPO,
     "ifac": IFAC,
     "sc_fac": SCFAC,
+    "sc_nocond": SCNocond,
+    "sc_shuffled": SCShuffled,
 }
 
 

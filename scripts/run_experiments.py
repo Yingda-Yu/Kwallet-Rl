@@ -43,8 +43,21 @@ def specs_for(tier: str):
         Cs, seeds, eps, rules, hid = CS_MAIN, SEEDS_MAIN[:5], 3000, RULES_STRONG, 256
     elif tier == "full":
         Cs, seeds, eps, rules, hid = CS_MAIN, SEEDS_MAIN, 3000, RULES_STRONG, 256
+    elif tier == "ablation":
+        # Mechanism ablations (conditioning information path), same budget as
+        # main; sc_fac reference comes from the main matrix.
+        Cs, seeds, eps, rules, hid = [800, 1200], SEEDS_MAIN[:3], 3000, [], 256
     else:
         raise ValueError(tier)
+    if tier == "ablation":
+        ablate = ["sc_nocond", "sc_shuffled"]
+        for C in Cs:
+            for m in ablate:
+                for s in seeds:
+                    runs.append(dict(kind="learned", method=m, C=C, k=24, F=3,
+                                     T=1000, seed=s, episodes=eps,
+                                     hidden=hid, embed=32))
+        return runs
     for C in Cs:
         for m in LEARNED:
             for s in seeds:
@@ -116,7 +129,8 @@ def run_one(exp, r, threads, force, logdir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", choices=["smoke", "pilot", "main", "full"],
+    ap.add_argument("--tier",
+                    choices=["smoke", "pilot", "main", "ablation", "full"],
                     default="smoke")
     ap.add_argument("--exp", default=None)
     ap.add_argument("--workers", type=int, default=1)
