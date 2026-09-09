@@ -80,7 +80,7 @@ def run_paths(exp, r):
             f"eval_{r['method']}_C{float(r['C'])}_k{r['k']}_F{r['F']}.csv")
 
 
-def build_commands(exp, r, threads):
+def build_commands(exp, r, threads, device="cpu"):
     env = dict(os.environ)
     env["OMP_NUM_THREADS"] = str(threads)
     env["MKL_NUM_THREADS"] = str(threads)
@@ -95,11 +95,11 @@ def build_commands(exp, r, threads):
                  "--seed", str(r["seed"]), "--episodes", str(r["episodes"]),
                  "--rollout", "8", "--epochs", "10", "--mb", "512",
                  "--hidden", str(r["hidden"]), "--embed", str(r["embed"]),
-                 "--device", "cpu", "--pool-train", "5000"] + common
+                 "--device", device, "--pool-train", "5000"] + common
         evalc = [py, "-m", "kwallet.cli", "evaluate", "--method", r["method"],
                  "--seed", str(r["seed"]), "--checkpoint", str(ckpt),
                  "--hidden", str(r["hidden"]), "--embed", str(r["embed"]),
-                 "--device", "cpu"] + common
+                 "--device", "cpu"] + common  # eval parallelizes on CPU workers
         cmds = [train, evalc]
     else:
         evalc = [py, "-m", "kwallet.cli", "evaluate", "--method", r["method"],
@@ -108,11 +108,11 @@ def build_commands(exp, r, threads):
     return cmds, env
 
 
-def run_one(exp, r, threads, force, logdir):
+def run_one(exp, r, threads, force, logdir, device="cpu"):
     rd, ckpt, evalcsv = run_paths(exp, r)
     if evalcsv.exists() and not force:
         return ("SKIPPED", str(evalcsv), "exists")
-    cmds, env = build_commands(exp, r, threads)
+    cmds, env = build_commands(exp, r, threads, device)
     t0 = time.time()
     logpath = logdir / (evalcsv.stem + ".log")
     with open(logpath, "w") as lf:
@@ -137,6 +137,8 @@ def main():
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--device", default="cpu", choices=["cpu", "cuda"],
+                    help="device for TRAINING (eval always on CPU workers)")
     ap.add_argument("--methods", default=None, help="comma filter on method")
     args = ap.parse_args()
     exp = args.exp or f"matrix_{args.tier}"
@@ -150,7 +152,7 @@ def main():
     manifest.parent.mkdir(exist_ok=True)
 
     print(f"plan: {len(runs)} runs, tier={args.tier}, exp={exp}, "
-          f"workers={args.workers}, threads/run={args.threads}")
+          f"workers={args.workers}, threads/run={args.threads}, device={args.device}")
     for r in runs:
         print(" ", r["kind"], r["method"], "C", r["C"],
               ("seed " + str(r["seed"]) if r["kind"] == "learned" else ""))
@@ -160,7 +162,8 @@ def main():
     rows = []
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = {ex.submit(run_one, exp, r, args.threads, args.force, logdir): r
+        futs = {ex.submit(run_one, exp, r, args.threads, args.force, logdir,
+                          args.device): r
                 for r in runs}
         for fut in as_completed(futs):
             r = futs[fut]

@@ -113,3 +113,13 @@ Evidence labels used across docs:
   135,949 / 50. Set-policy params are independent of k (cross-k transferable);
   flat policy params change with k and cannot transfer. Per-step latency
   0.4-1.1 ms CPU. runs/bench/bench_C1200.0_k24.csv.
+
+## 2026-09-10 — GPU authorized & verified, but measured unsuitable (CORRECTED)
+- User authorized GPU. Isolated `kwallet-gpu` env (torch 2.3.1+cu121) built;
+  CUDA verified on free GPU1 (real matmul + real cuda training/checkpoint).
+- Head-to-head identical config: PPO cycle ~10 s CPU vs ~19 s CUDA (GPU util
+  ~14%). Workload is batch-1 sequential rollout + CPU numpy env; GPU launch/
+  transfer overhead makes it ~2x slower. DECISION: keep all training on CPU;
+  report GPU as verified-but-not-beneficial for this architecture. Added a
+  --device flag to run_experiments.py (train device; eval stays on CPU) for
+  completeness/future vectorized rollout.
