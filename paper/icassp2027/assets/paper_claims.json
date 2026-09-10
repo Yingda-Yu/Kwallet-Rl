@@ -1,0 +1,10 @@
+{
+  "missing": {},
+  "transfer_retention": {
+    "set_sc_fac": {
+      "diag": 30774.166898148145,
+      "offdiag": 20139.713055555556,
+      "retention_pct": 65.44356869906842
+    }
+  }
+}

@@ -24,8 +24,9 @@ REPORTED = {
     "ifac": {800:3607.05, 900:6347.35, 1000:8786.44, 1200:14472.93},
     "sc_fac":{800:3999.25,900:6627.98,1000:9064.80,1200:14687.65},
 }
-METHOD_ORDER = ["FA","FWF","ja_ppo","ifac","sc_fac"]
-FNAME = re.compile(r"eval_(?P<method>[a-zA-Z_]+)_C(?P<C>[0-9.]+)_k(?P<k>[0-9]+)_F(?P<F>[0-9]+)(?:_s(?P<seed>[0-9]+))?\.csv$")
+METHOD_ORDER = ["FA","FWF","ROT","BFP0.5","ja_ppo","ifac","sc_fac",
+                "sc_nocond","sc_shuffled"]
+FNAME = re.compile(r"eval_(?P<method>[A-Za-z0-9_.]+)_C(?P<C>[0-9.]+)_k(?P<k>[0-9]+)_F(?P<F>[0-9]+)(?:_s(?P<seed>[0-9]+))?\.csv$")
 
 
 def load_runs(exp):

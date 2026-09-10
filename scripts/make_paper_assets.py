@@ -85,21 +85,36 @@ def main_table(exp):
     return df, {}
 
 
-def ablation_table(exp):
-    f = TBL / f"{exp}_main_table.csv"
-    if not f.exists():
-        return {"ablation_table": str(f)}
-    df = pd.read_csv(f)
-    methods = ["sc_fac", "sc_nocond", "sc_shuffled"]
+def ablation_table(abl_exp, main_exp):
+    """Mechanism ablations. sc_nocond/sc_shuffled come from the ablation run;
+    the sc_fac reference is taken from the main run on the SAME seeds and
+    capacities so the comparison is paired (identical training budget/seeds)."""
+    f_abl = TBL / f"{abl_exp}_main_long.csv"
+    f_main = TBL / f"{main_exp}_main_long.csv"
+    if not f_abl.exists():
+        return {"ablation_table": str(f_abl)}
+    abl = pd.read_csv(f_abl)
+    abl["seed"] = abl["seed"].astype(str)
+    abl_seeds = sorted(abl.seed.dropna().unique().tolist())
+    frames = [abl[abl.method.isin(["sc_nocond", "sc_shuffled"])] ]
+    if f_main.exists():
+        mn = pd.read_csv(f_main)
+        mn["seed"] = mn["seed"].astype(str)
+        frames.append(mn[(mn.method == "sc_fac") & (mn.seed.isin(abl_seeds))])
+    df = pd.concat(frames, ignore_index=True)
+    Cs = sorted(df.C.unique())
+    C_show = 1200.0 if 1200.0 in Cs else Cs[-1]
     lines = [r"\begin{tabular}{lcc}", r"\hline",
-             r"variant & Money at $C{=}1200$ & flush cost\\"]
-    for m in methods:
-        g = df[(df.method == m) & (df.C == 1200)]
+             f"variant & Money ($C{{=}}{int(C_show)}$, same 3 seeds) & flush cost\\\\"]
+    for m in ["sc_fac", "sc_nocond", "sc_shuffled"]:
+        g = df[(df.method == m) & (df.C == C_show)]
         if not len(g):
             continue
-        r = g.iloc[0]
-        se = f"$\\pm${r.money_se:.0f}" if r.n_seeds and r.n_seeds > 1 else ""
-        lines.append(f"{METHOD_LABEL[m]} & {r.money_mean:.0f}{se} & {r.flush_mean:.0f}\\\\")
+        money = g.money.to_numpy(float)
+        mean = money.mean()
+        se = money.std(ddof=1) / np.sqrt(len(money)) if len(money) > 1 else 0.0
+        fl = g.flush.mean()
+        lines.append(f"{METHOD_LABEL.get(m, m)} & {mean:.0f}$\\pm${se:.0f} & {fl:.0f}\\\\")
     lines += [r"\hline", r"\end{tabular}"]
     (TAB / "ablation.tex").write_text("\n".join(lines))
     return {}
@@ -222,7 +237,7 @@ def main():
     claims = {"missing": {}}
     _, miss = main_table(args.exp)
     claims["missing"].update(miss)
-    claims["missing"].update(ablation_table(args.ablation))
+    claims["missing"].update(ablation_table(args.ablation, args.exp))
     tr = transfer_table(args.kscale)
     claims["missing"].update({k: v for k, v in tr.items() if isinstance(v, str)})
     claims.update({k: v for k, v in tr.items() if not isinstance(v, str)})

@@ -60,7 +60,8 @@ def eval_learned(cfg, pools, n, out, train_exp, methods, seeds, hidden=256,
                 continue
             pol = build_policy(method, cfg.obs_dim, cfg.k, hidden=hidden,
                                embed=embed)
-            pol.load_state_dict(torch.load(ck, map_location="cpu")["model"])
+            ck_obj = torch.load(ck, map_location="cpu", weights_only=False)
+            pol.load_state_dict(ck_obj["model"])
             pol.eval()
             for (ra, rb, frac) in SWITCH_PAIRS:
                 streams = build_switch_streams(pools, ra, rb, frac, n=n)
