@@ -226,6 +226,73 @@ def efficiency_table():
     return {}
 
 
+def build_claims(exp, abl, kscale):
+    """Headline numbers with explicit source-file pointers, read from the
+    generated result CSVs. No number is typed here."""
+    c = {"sources": {}}
+
+    def src(key, rel):
+        c["sources"][key] = rel
+
+    f = TBL / f"{exp}_main_table.csv"
+    if f.exists():
+        df = pd.read_csv(f)
+        m = {}
+        for _, r in df.iterrows():
+            m.setdefault(r.method, {})[int(r.C)] = {
+                "money": round(float(r.money_mean), 1),
+                "se": round(float(r.money_se), 1),
+                "n_seeds": int(r.n_seeds),
+                "reported_only_paper": None if pd.isna(r.reported) else float(r.reported)}
+        c["main_money_by_method_C"] = m
+        src("main", f"results/tables/{exp}_main_table.csv")
+
+    fp = TBL / f"{exp}_paired.csv"
+    if fp.exists():
+        d = pd.read_csv(fp)
+        c["paired_C1200"] = [
+            {"contrast": r.contrast, "mean_diff": round(float(r.mean_diff), 1),
+             "ci95": [round(float(r.lo), 1), round(float(r.hi), 1)],
+             "p": round(float(r.p), 4), "wins": int(r.wins), "n": int(r.n)}
+            for _, r in d[d.C == 1200].iterrows()]
+        src("paired", f"results/tables/{exp}_paired.csv")
+
+    fa = TBL / f"{abl}_paired.csv"
+    if fa.exists():
+        d = pd.read_csv(fa)
+        c["ablation_paired"] = [
+            {"C": int(r.C), "contrast": r.contrast,
+             "mean_diff": round(float(r.mean_diff), 1),
+             "ci95": [round(float(r.lo), 1), round(float(r.hi), 1)],
+             "p": round(float(r.p), 4), "wins": int(r.wins), "n": int(r.n)}
+            for _, r in d.iterrows()]
+        src("ablation_paired", f"results/tables/{abl}_paired.csv")
+
+    fs = TBL / "switching_summary.csv"
+    if fs.exists():
+        d = pd.read_csv(fs).set_index("policy")
+        c["switching"] = {
+            p: {"money": round(float(d.loc[p, "money"]), 1),
+                "post_money": round(float(d.loc[p, "post_money"]), 1),
+                "post_recoverable_drops": round(float(d.loc[p, "post_rec_drops"]), 2)}
+            for p in ["FA", "FWF", "BFP0.5", "ja_ppo", "ifac", "sc_fac"] if p in d.index}
+        src("switching", "results/tables/switching_summary.csv")
+    fsp = TBL / "switching_paired_vs_bfp.csv"
+    if fsp.exists():
+        d = pd.read_csv(fsp).set_index("policy")
+        c["switching_learned_minus_BFP0.5"] = {
+            p: {"d_post_drops": round(float(d.loc[p, "d_drops_mean"]), 2),
+                "d_money": round(float(d.loc[p, "d_money_mean"]), 1)}
+            for p in d.index}
+        src("switching_paired", "results/tables/switching_paired_vs_bfp.csv")
+
+    import glob as _glob
+    hits = sorted(_glob.glob(str(ROOT / "runs" / "bench" / "bench_*.csv")))
+    if hits:
+        src("efficiency", str(Path(hits[-1]).relative_to(ROOT)))
+    return c
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--exp", default="matrix_main")
@@ -243,6 +310,7 @@ def main():
     claims.update({k: v for k, v in tr.items() if not isinstance(v, str)})
     claims["missing"].update(switching_table())
     claims["missing"].update(efficiency_table())
+    claims.update(build_claims(args.exp, args.ablation, args.kscale))
     (ASSETS / "paper_claims.json").write_text(json.dumps(claims, indent=2))
     print("assets written to", ASSETS)
     print("missing:", json.dumps(claims["missing"], indent=2))

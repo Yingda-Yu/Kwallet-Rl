@@ -11,8 +11,8 @@
 \newcommand{\inputtable}[1]{\IfFileExists{assets/tables/#1}{\input{assets/tables/#1}}{\emph{(table pending: \detokenize{#1})}}}
 \newcommand{\figpdf}[2]{\IfFileExists{assets/figs/#1}{\includegraphics[width=#2]{assets/figs/#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}(figure pending: \detokenize{#1})\vspace{1em}}}}}
 
-\title{POLICY FACTORIZATION AND EQUIVARIANT ENCODERS FOR STREAMING
-COLLATERAL CONTROL: A REPRODUCTION AND STRONG-BASELINE STUDY}
+\title{AUDITING STRUCTURED POLICY LEARNING FOR STREAMING TRANSACTION
+COLLATERAL CONTROL: FACTORIZATION, CONDITIONING, AND CROSS-SCALE TRANSFER}
 
 % TODO(authors): confirm full author list, affiliation, and funding before
 % submission. Name below is the repository owner; do not infer co-authors.
@@ -65,10 +65,19 @@ to flush under non-stationary, bursty traffic. Prior control schemes use fixed
 heuristics; recent work proposes learning the controller with policy
 optimization over a structured action space.
 
-We reproduce and then extend that line. Rather than compare learned controllers
-only against naive heuristics, we benchmark them against a tuned rule, add
-mechanism ablations, and redesign the encoder for the deployment reality that
-the number of wallets can change. Our contributions are:
+We treat that line as a hypothesis to audit rather than a result to defend:
+\emph{which structural inductive biases actually matter for online collateral
+control---a joint versus factored action head, a settle-conditioned flush
+head, a $k$-invariant encoder---and does learning beat a strong, cheap
+feedback rule?} Re-implementing the environment and policies, we benchmark
+against a validation-tuned rule (not only naive heuristics), add mechanism
+ablations, and redesign the encoder for the deployment reality that the number
+of wallets can change. The environment and twelve-regime generator are a
+faithful port of the prior manuscript; JA-PPO/IFAC/SC-FAC and their
+hyperparameters are re-implementations (the manuscript omits them); the strong
+rule, the conditioning ablations, and the equivariant set encoder are this
+study's additions. Our findings are deliberately reported whether positive or
+null:
 \begin{itemize}
 \item A faithful, tested re-implementation of the environment and the
 twelve-regime traffic generator, and of three PPO policies---\textbf{JA-PPO}
@@ -243,17 +252,31 @@ deploy $k$.}
 \end{figure}
 
 \noindent\textbf{Non-stationary streams (OOD).} Trained only on stationary
-pools, policies are tested on episodes spliced across regimes at an abrupt change
-point. Fig.~\ref{fig:sw} reports post-switch avoidable drops. BFP0.5 incurs
-\emph{zero} avoidable drops after every switch direction and change-point
-(calm$\to$burst, burst$\to$calm, early, late), whereas FA/FWF accumulate tens to
-hundreds; the feedback controller adapts without retraining because wallet fill
-is a sufficient statistic. We therefore do \emph{not} claim that learning adapts
-better to these shifts---an honest negative under the given observation model.
+pools, every policy is tested on the \emph{same} deterministic episodes spliced
+across regimes at an abrupt change point (six scenarios: calm$\to$burst,
+burst$\to$calm, early and late). Table~\ref{tab:sw} and Fig.~\ref{fig:sw}
+report post-switch avoidable drops and Money. BFP0.5 incurs \emph{zero}
+avoidable drops after every switch and the highest Money, adapting without
+retraining because wallet fill is close to a sufficient statistic. The learned
+policies generalize far better than the naive rules (28--56 vs.\ 144--148
+post-switch drops) but remain significantly worse than BFP0.5 on both drops and
+Money over the paired scenarios ($p\!<\!0.01$; $n{=}3$ seeds); IFAC and SC-FAC
+are tied. We therefore do \emph{not} observe any switch-adaptation advantage of
+learning over the tuned feedback rule---an honest negative.
+
+\begin{table}[htb]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\inputtable{switching.tex}
+\caption{Switching streams (mean over six scenarios; learned over three seeds).
+Post-switch avoidable drops and Money.}
+\label{tab:sw}
+\end{table}
 
 \begin{figure}[htb]
 \centering
-\figpdf{switching_drops.pdf}{0.44\columnwidth}
+\figpdf{switching_drops.pdf}{0.40\columnwidth}
 \caption{Post-switch avoidable drops (mean over switch scenarios).}
 \label{fig:sw}
 \end{figure}
@@ -277,6 +300,20 @@ future arrivals, and single-GPU/CPU PPO with no vectorized rollouts. The
 prior manuscript's learned numbers are treated as reported, not regenerated:
 its environment is a faithful port while the policies and unspecified
 hyperparameters are documented re-implementations chosen on validation.
+
+\section{Conclusion}
+We audited which structural inductive biases help a learned streaming
+collateral controller. The evidence is clear on three points and null on one.
+Factoring the joint action into separate settle/flush heads gives a
+significant, reproducible gain over the joint head and cuts outputs from
+$(k{+}1)^2$ to $2(k{+}1)$. Adding a settle-conditioned flush path yields no
+detectable Money gain under matched-seed zero/shuffle ablations. A
+$k$-independent equivariant encoder adds genuine operational value---weights
+deploy zero-shot to unseen wallet counts where a flat MLP cannot---at an
+asymmetric transfer and matched-scale cost. Most importantly, on homogeneous
+stationary streams and across abrupt regime switches, one validation-selected
+feedback rule is near-optimal and significantly beats the learned controllers;
+we present this as a target for future learning methods rather than conceal it.
 
 \vfill\pagebreak
 \bibliographystyle{IEEEbib}
