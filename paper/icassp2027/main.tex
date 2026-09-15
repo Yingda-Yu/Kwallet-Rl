@@ -1,3 +1,13 @@
+% =====================================================================
+% INTERNAL AI-ASSISTED DRAFT -- NOT AUTHOR-FINALIZED (ICASSP 2027)
+% The prose of this manuscript was drafted by an AI coding assistant.
+% Experiments, tables, figures, statistics and LaTeX structure are final
+% and traceable to generated CSVs (see assets/paper_claims.json), but the
+% core prose MUST be substantively rewritten and approved by the human
+% author before submission. See HUMAN_REWRITE_CHECKLIST.md.
+% Do NOT treat wording, emphasis, framing or title as author-approved.
+% Author list / affiliation / contact / ORCID / funding: NOT FILLED.
+% =====================================================================
 % ICASSP 2027 manuscript. Tables/figures are auto-generated from result CSVs by
 % scripts/make_paper_assets.py into assets/; missing assets render as "(pending)"
 % so the document always compiles and never contains a hand-typed result.
@@ -33,17 +43,19 @@ fee. We study the resulting collateral-control problem as an online,
 partially-specified Markov decision process under twelve traffic regimes.
 We (i) faithfully port the environment/traffic generator and re-implement three
 PPO policies---a joint action head, independent factorized heads, and a
-settle-conditioned factored head. Across five seeds, factorization gives a
-significant, reproducible Money gain over the joint head, whereas the extra
-settle-conditioning path gives \emph{no statistically detectable} gain (paired
-95\% CIs; zero- and shuffled-conditioning ablations are indistinguishable), a
-negative mechanism result we report. (ii) We introduce a
+settle-conditioned factored head. Across five seeds, the settle-conditioned
+factored head significantly beats the joint head at all four tested
+capacities, and the independently factored head at three of four, whereas the
+extra settle-conditioning path gives \emph{no statistically detectable} gain
+(paired 95\% CIs; zero- and shuffled-conditioning ablations are
+indistinguishable), a negative mechanism result we report. (ii) We introduce a
 permutation-equivariant set encoder with no $k$-dependent parameter, which
 loads and runs zero-shot across wallet counts where a flat MLP cannot; its
 transfer quality is asymmetric and it pays a modest matched-scale cost.
-(iii) A deliberately strong, validation-selected threshold rule significantly
-outperforms every learned policy on stationary streams and incurs zero
-avoidable drops after abrupt regime shifts. On this balanced workload, wallet
+(iii) A deliberately strong, validation-selected threshold rule attains the
+highest Money and significantly outperforms the learned policies in nearly all
+paired comparisons on stationary streams, and incurs zero avoidable drops
+after abrupt regime shifts. On this balanced workload, wallet
 fill is close to a sufficient statistic; we keep this negative rather than hide
 it. All numbers are produced by released, deterministic code on ported data.
 \end{abstract}
@@ -95,8 +107,9 @@ signal over matched seeds; they find no detectable Money benefit from the
 settle$\to$flush path at the tested flush price---an honest null result.
 \item An \textbf{honest strong baseline}: a validation-selected best-fit
 threshold rule that attains zero avoidable drops, is robust to regime shifts,
-and significantly outperforms all learned policies on stationary streams. We
-report where learning does---and, more often, does not---beat it.
+and attains the highest Money at every capacity, significantly beating the
+learned policies in nearly all paired comparisons. We report where learning
+does---and, more often, does not---beat it.
 \end{itemize}
 
 \section{Streaming collateral control}
@@ -170,15 +183,21 @@ some wallet).
 \noindent\textbf{Stationary performance.} Table~\ref{tab:main} reports Money per
 capacity with seed-level paired contrasts in Table~\ref{tab:paired}; the
 structural floor of oversize drops is $\approx400$ per episode for every method.
-Two robust effects and one null emerge. \emph{Factorization helps:} both
-factorized policies significantly outperform JA-PPO at every capacity, winning
-every paired seed. \emph{Conditioning does not add Money:} the
-SC-FAC$-$IFAC paired difference is small and its 95\% CI includes zero at every
-capacity; SC-FAC accepts marginally more value but spends more flushes, which
-cancels the gain at $\tau{=}10$. \emph{A tuned rule beats learning:} BFP0.5
-significantly outperforms every learned policy at every capacity while reaching
-zero avoidable drops. On this balanced i.i.d.\ workload a single balance-feedback
-threshold is near-optimal, and a 3000-episode PPO budget does not beat it.
+Two robust effects and one null emerge. \emph{Factorization helps:}
+SC-FAC significantly outperforms JA-PPO at all four capacities
+($p\!\le\!0.013$, $5/5$ seeds); IFAC also outperforms JA-PPO at
+$C\!\in\!\{800,900,1200\}$ ($p\!\le\!0.033$) but \emph{not} at $C{=}1000$
+($p{=}0.57$). \emph{Conditioning does not add Money:} the SC-FAC$-$IFAC paired
+difference has a 95\% CI including zero at $C\!\in\!\{900,1000,1200\}$, and at
+$C{=}800$ SC-FAC is significantly \emph{lower} than IFAC ($-419$, $p{=}0.009$);
+SC-FAC accepts marginally more value but spends more flushes, which cancels the
+gain at $\tau{=}10$. \emph{A tuned rule beats learning:} BFP0.5 attains the
+highest Money at every capacity with zero avoidable drops, and its paired
+advantage is significant in $11/12$ method-capacity contrasts; the sole
+exception is vs.\ IFAC at $C{=}1000$ ($+2545$, $p{=}0.057$, CI crossing zero),
+which BFP0.5 nevertheless wins on all five seeds. On this balanced i.i.d.\
+workload a single balance-feedback threshold is near-optimal, and a
+3000-episode PPO budget does not beat it.
 
 \begin{table}[htb]
 \centering
@@ -251,6 +270,7 @@ deploy $k$.}
 \label{fig:heat}
 \end{figure}
 
+\begin{sloppypar}
 \noindent\textbf{Non-stationary streams (OOD).} Trained only on stationary
 pools, every policy is tested on the \emph{same} deterministic episodes spliced
 across regimes at an abrupt change point (six scenarios: calm$\to$burst,
@@ -263,6 +283,7 @@ post-switch drops) but remain significantly worse than BFP0.5 on both drops and
 Money over the paired scenarios ($p\!<\!0.01$; $n{=}3$ seeds); IFAC and SC-FAC
 are tied. We therefore do \emph{not} observe any switch-adaptation advantage of
 learning over the tuned feedback rule---an honest negative.
+\end{sloppypar}
 
 \begin{table}[htb]
 \centering
@@ -283,11 +304,13 @@ Post-switch avoidable drops and Money.}
 
 \section{Discussion and limitations}
 On balanced stationary streams a carefully tuned, extremely simple feedback
-rule significantly beats a general-purpose PPO controller; the defensible
-claims for learning are therefore structural rather than raw Money. The robust
-learned effect is \emph{factorization} (two heads beat the joint head at every
-capacity); the further settle-conditioning mechanism is a null under our
-ablation protocol and should not be presented as a gain. The most useful
+rule attains the highest Money and beats the general-purpose PPO controllers in
+nearly all paired comparisons; the defensible claims for learning are therefore
+structural rather than raw Money. The robust learned effect is
+\emph{factorization}: the settle-conditioned factored head beats the joint head
+at every capacity and the independent factored head at three of four; the
+further settle-conditioning mechanism is a null under our ablation protocol
+and should not be presented as a gain. The most useful
 systems result is the equivariant set encoder's $k$-independence and
 zero-shot cross-$k$ deployability, although we show this is asymmetric and
 trades off some matched-scale accuracy. We read the strong rule not as a
@@ -305,15 +328,18 @@ hyperparameters are documented re-implementations chosen on validation.
 We audited which structural inductive biases help a learned streaming
 collateral controller. The evidence is clear on three points and null on one.
 Factoring the joint action into separate settle/flush heads gives a
-significant, reproducible gain over the joint head and cuts outputs from
-$(k{+}1)^2$ to $2(k{+}1)$. Adding a settle-conditioned flush path yields no
-detectable Money gain under matched-seed zero/shuffle ablations. A
-$k$-independent equivariant encoder adds genuine operational value---weights
-deploy zero-shot to unseen wallet counts where a flat MLP cannot---at an
-asymmetric transfer and matched-scale cost. Most importantly, on homogeneous
-stationary streams and across abrupt regime switches, one validation-selected
-feedback rule is near-optimal and significantly beats the learned controllers;
-we present this as a target for future learning methods rather than conceal it.
+reproducible gain over the joint head---significant at all four capacities for
+the settle-conditioned variant and at three of four for the independent
+variant---and cuts outputs from $(k{+}1)^2$ to $2(k{+}1)$. Adding a
+settle-conditioned flush path yields no detectable Money gain under
+matched-seed zero/shuffle ablations. A $k$-independent equivariant encoder
+adds genuine operational value---weights deploy zero-shot to unseen wallet
+counts where a flat MLP cannot---at an asymmetric transfer and matched-scale
+cost. Most importantly, on homogeneous stationary streams and across abrupt
+regime switches, one validation-selected feedback rule attains the highest
+Money with zero post-switch avoidable drops and beats the learned controllers
+in nearly every paired comparison; we present this as a target for future
+learning methods rather than conceal it.
 
 \vfill\pagebreak
 \bibliographystyle{IEEEbib}

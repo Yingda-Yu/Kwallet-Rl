@@ -20,7 +20,8 @@ LABEL = {"FA": "FA", "FWF": "FWF", "BFP0.5": "BFP0.5", "ja_ppo": "JA-PPO",
          "sc_shuffled": "SC(shuf.)"}
 # (a, b) -> reports mean(a - b); positive means a beats b
 PAIRS = [("sc_fac", "ifac"), ("ifac", "ja_ppo"), ("sc_fac", "ja_ppo"),
-         ("BFP0.5", "sc_fac"), ("sc_fac", "FA"), ("ifac", "FA"),
+         ("BFP0.5", "sc_fac"), ("BFP0.5", "ifac"), ("BFP0.5", "ja_ppo"),
+         ("sc_fac", "FA"), ("ifac", "FA"),
          ("sc_fac", "sc_nocond"), ("sc_fac", "sc_shuffled")]
 
 

@@ -245,6 +245,28 @@
       "n": 5
     },
     {
+      "contrast": "BFP0.5-IFAC",
+      "mean_diff": 1812.6,
+      "ci95": [
+        1545.9,
+        2079.3
+      ],
+      "p": 0.0,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "BFP0.5-JA-PPO",
+      "mean_diff": 3433.4,
+      "ci95": [
+        3020.4,
+        3846.5
+      ],
+      "p": 0.0,
+      "wins": 5,
+      "n": 5
+    },
+    {
       "contrast": "SC-FAC-FA",
       "mean_diff": 4352.5,
       "ci95": [
