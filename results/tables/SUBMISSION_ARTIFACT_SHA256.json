@@ -58,5 +58,10 @@
     "path": "runs/bench/bench_C1200.0_k24.csv",
     "sha256": "01c544940d15e208c4cf41bbeb566bcf7b90489c61ef9d3536d3bb1276aeed60",
     "bytes": 836
+  },
+  "Submission V1 internal PDF (frozen, NOT for final submission)": {
+    "path": "paper/icassp2027/submission_v1_internal.pdf",
+    "sha256": "923e23c60388b3e1fcc07ae4d1ce91795652a8a1c95d732cd0ea96f07e9f6d35",
+    "bytes": 235998
   }
 }

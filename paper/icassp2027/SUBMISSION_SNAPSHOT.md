@@ -4,6 +4,21 @@ Snapshot date: **2026-09-16**
 Status: **INTERNAL AI-ASSISTED DRAFT — NOT READY TO SUBMIT** (author metadata
 and author prose rewrite are blockers). Experiments/statistics are frozen.
 
+---
+## V1 FREEZE ADDENDUM (2026-09-16)
+- Title, primary/secondary topics, and the 5 keywords are **AUTHOR-CONFIRMED**
+  and applied in main.tex (removed from the blocker list).
+- Internal frozen QA PDF: `paper/icassp2027/submission_v1_internal.pdf`,
+  byte-identical to main.pdf at freeze time
+  (SHA256 `923e23c60388b3e1fcc07ae4d1ce91795652a8a1c95d732cd0ea96f07e9f6d35`),
+  marked INTERNAL / NOT FOR FINAL SUBMISSION (see SUBMISSION_V1_INTERNAL.txt).
+- 150-word abstract candidate fact-checked (one ambiguous sentence corrected;
+  see SUBMISSION_V1_CHECKLIST.md section B); remains AUTHOR REVIEW REQUIRED.
+- Field-by-field READY/BLOCKED state: SUBMISSION_V1_CHECKLIST.md.
+- Bibliography re-verified: 4 entries, all cited; no padding references added.
+- AGENTS.md add/add conflict: resolution proposal only, at
+  docs/AGENTS_MERGE_PROPOSAL.md (no merge performed).
+
 ## 1. Code / experiment lineage
 - Frozen experiment + aggregation + statistics code SHA: **`4a2520f`**
   (`4a2520ff291ad6070050fd7e6767b6084f162dab`) on branch
@@ -100,14 +115,17 @@ values appear only in the separate "paper rep." column (REPORTED_ONLY).
 - Per-page renders in paper/icassp2027/render/page-{1..4}.png visually checked.
 
 ## 7. Submission blockers (must be resolved by the human author)
+Resolved (2026-09-16): title; primary 2.2 ML-REI / secondary 2.7.5 ML-APP-EMG;
+five keywords. Remaining:
 1. Real author list/order, affiliations, corresponding email, ORCID(s), funding.
    Currently `main.tex` shows "Yingda Yu" (repo owner; provisional) and
-   "Affiliation to be confirmed" — these are intentional, not ready-to-submit.
-2. Author substantive prose rewrite (HUMAN_REWRITE_CHECKLIST.md); final
-   abstract (~100-150 words) and final keyword confirmation (5).
+   "Affiliation to be confirmed" — intentional placeholders, not submittable.
+2. Author substantive prose rewrite (HUMAN_REWRITE_CHECKLIST.md) and approval
+   of the final abstract (~100-150 words; 150-word candidate fact-checked).
 3. Final AI-use disclosure wording matching the live ICASSP 2027 policy.
-4. Prior manuscript / dual-submission / arXiv status confirmation.
-5. Final topic codes (proposed primary 2.2 ML-REI; secondary 2.7.5 ML-APP-EMG).
-6. After all of the above: rebuild, re-run this QA, regenerate snapshot hashes.
+4. Prior manuscript / dual-submission / arXiv status confirmation; paper type /
+   presentation / student-paper form options.
+5. After all of the above: rebuild the submission PDF, re-run this QA, and
+   regenerate the snapshot hashes. Do not upload submission_v1_internal.pdf.
 
-**Do not submit until items 1-5 are complete and the author explicitly authorizes it.**
+**Do not submit until items 1-4 are complete and the author explicitly authorizes it.**

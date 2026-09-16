@@ -108,22 +108,19 @@ Verify the final word count between `\begin{abstract}` and `\end{abstract}`.
 ### Conclusion
 - Rewrite in your voice; same four evidence points; no new claims.
 
-### Title (provisional; your call)
-Current: "Auditing Structured Policy Learning for Streaming Transaction
-Collateral Control: Factorization, Conditioning, and Cross-Scale Transfer".
-Keep, shorten, or replace after the rewrite.
+### Title — AUTHOR-CONFIRMED (2026-09-16)
+"Auditing Structured Policy Learning for Streaming Transaction Collateral
+Control: Factorization, Conditioning, and Cross-Scale Transfer".
+Locked; do not change unless the author re-opens it explicitly.
 
-## Keywords (currently 6; at most 5 allowed)
+## Keywords — AUTHOR-CONFIRMED (2026-09-16), exactly 5, applied in main.tex
+reinforcement learning; structured policies; resource allocation;
+permutation equivariance; online decision making.
+Locked; any later change must keep the count at 5 and be author-approved.
 
-Current: reinforcement learning; payment channels; resource allocation;
-permutation equivariance; policy factorization; out-of-distribution.
-
-**Proposal (not applied -- your decision):**
-- **Recommended:** delete **out-of-distribution** (OOD content remains in the
-  switching section; it is the least core term for the positive results).
-- Alternative: delete **resource allocation** (generic) if you prefer to keep
-  the OOD framing.
-- Do not add keywords without dropping one.
+## Topics — AUTHOR-CONFIRMED (2026-09-16)
+Primary 2.2 Reinforcement Learning [ML-REI]; secondary 2.7.5 Emerging
+Applications of Machine Learning [ML-APP-EMG].
 
 ## Metadata you must supply (do not let anyone guess)
 
@@ -134,9 +131,9 @@ permutation equivariance; policy factorization; out-of-distribution.
 - [ ] Funding / grant / acknowledgment statement
 - [ ] Prior manuscript / submission status (relation to the old paper)
 - [ ] Final AI-use disclosure wording consistent with ICASSP 2027 policy
-- [ ] Final title
-- [ ] Final keyword choice (<= 5)
-- [ ] Confirm topic area code (draft used ML-REI) on the submission form
+- [x] Final title (confirmed 2026-09-16)
+- [x] Final keyword choice, 5 terms (confirmed 2026-09-16)
+- [x] Topic areas: primary ML-REI, secondary ML-APP-EMG (confirmed 2026-09-16)
 
 Replace the `\name{}` / `\address{}` placeholders only when you have this.
 
