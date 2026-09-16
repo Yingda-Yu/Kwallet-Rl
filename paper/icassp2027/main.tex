@@ -51,7 +51,8 @@ extra settle-conditioning path gives \emph{no statistically detectable} gain
 indistinguishable), a negative mechanism result we report. (ii) We introduce a
 permutation-equivariant set encoder with no $k$-dependent parameter, which
 loads and runs zero-shot across wallet counts where a flat MLP cannot; its
-transfer quality is asymmetric and it pays a modest matched-scale cost.
+transfer quality is asymmetric, and at the largest tested $k$ it trails a
+size-matched flat network.
 (iii) A deliberately strong, validation-selected threshold rule attains the
 highest Money and significantly outperforms the learned policies in nearly all
 paired comparisons on stationary streams, and incurs zero avoidable drops
@@ -61,8 +62,8 @@ it. All numbers are produced by released, deterministic code on ported data.
 \end{abstract}
 
 \begin{keywords}
-reinforcement learning, payment channels, resource allocation, permutation
-equivariance, policy factorization, out-of-distribution.
+reinforcement learning, structured policies, resource allocation,
+permutation equivariance, online decision making.
 \end{keywords}
 
 \section{Introduction}
@@ -251,7 +252,9 @@ change with $k$. The benefit is operational deployability (train once, deploy at
 another scale), not uniformly preserved Money: zero-shot retention is
 asymmetric---strong when moving to larger-wallet/smaller-$k$ operating points
 and weak when a model trained with large wallets meets the small wallets at
-$k{=}24$---and the set encoder pays a modest matched-$k$ cost versus a flat MLP.
+$k{=}24$. At matched $k$ the set encoder is comparable to or above a flat MLP
+at $k{=}6,12$ but lower at $k{=}24$ ($9190$ vs.\ $13610$), so deployability
+comes with a scale-specific accuracy trade-off.
 
 \begin{table}[htb]
 \centering
@@ -281,7 +284,7 @@ retraining because wallet fill is close to a sufficient statistic. The learned
 policies generalize far better than the naive rules (28--56 vs.\ 144--148
 post-switch drops) but remain significantly worse than BFP0.5 on both drops and
 Money over the paired scenarios ($p\!<\!0.01$; $n{=}3$ seeds); IFAC and SC-FAC
-are tied. We therefore do \emph{not} observe any switch-adaptation advantage of
+incur essentially identical post-switch drops ($28.3$). We therefore do \emph{not} observe any switch-adaptation advantage of
 learning over the tuned feedback rule---an honest negative.
 \end{sloppypar}
 
@@ -312,8 +315,8 @@ at every capacity and the independent factored head at three of four; the
 further settle-conditioning mechanism is a null under our ablation protocol
 and should not be presented as a gain. The most useful
 systems result is the equivariant set encoder's $k$-independence and
-zero-shot cross-$k$ deployability, although we show this is asymmetric and
-trades off some matched-scale accuracy. We read the strong rule not as a
+zero-shot cross-$k$ deployability, although we show this is asymmetric and, at
+$k{=}24$, sacrifices matched-scale accuracy. We read the strong rule not as a
 failure of RL in general but as evidence that, with the present observation
 model, wallet fill is close to a sufficient statistic on i.i.d.\ streams;
 learning is most likely to matter only under richer structure (non-i.i.d.\

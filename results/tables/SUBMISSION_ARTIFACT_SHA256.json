@@ -1,0 +1,62 @@
+{
+  "PDF (current built manuscript)": {
+    "path": "paper/icassp2027/main.pdf",
+    "sha256": "923e23c60388b3e1fcc07ae4d1ce91795652a8a1c95d732cd0ea96f07e9f6d35",
+    "bytes": 235998
+  },
+  "paper_claims.json": {
+    "path": "paper/icassp2027/assets/paper_claims.json",
+    "sha256": "8b5d8968f313ab35cf3fd581c164fbdabfa332434eb43f6b38f5fd4d41a53f62",
+    "bytes": 7589
+  },
+  "main table": {
+    "path": "results/tables/matrix_main_main_table.csv",
+    "sha256": "b2c60f7ae42809046532d6783175985f4d43236c012afe05cab41cf21c0cb666",
+    "bytes": 2305
+  },
+  "main long": {
+    "path": "results/tables/matrix_main_main_long.csv",
+    "sha256": "fd168014983bd92c3dda0d974fab528a42b08567eaeb02091881724238e4c276",
+    "bytes": 6086
+  },
+  "paired": {
+    "path": "results/tables/matrix_main_paired.csv",
+    "sha256": "37a2c3daf6eda203b79de9b5cec563c73f3709da2a1296ff8769ab6288f8a1d1",
+    "bytes": 4632
+  },
+  "tau posthoc": {
+    "path": "results/tables/matrix_main_tau_posthoc.csv",
+    "sha256": "f55b75aa31d10b54de61167fe5c6184f87601ebc019d3d82304bbaac2eec0a46",
+    "bytes": 3342
+  },
+  "ablation table": {
+    "path": "results/tables/matrix_ablation_main_table.csv",
+    "sha256": "98abc4286438298078af00581f5f1b3f87be40772e40ac551f5d9a1fc5d7df04",
+    "bytes": 440
+  },
+  "ablation paired": {
+    "path": "results/tables/matrix_ablation_paired.csv",
+    "sha256": "64e5b4fbe01f4399cf9707f43ce55f471278cf8580e0e2ef9b04a7ba636227cb",
+    "bytes": 681
+  },
+  "cross-k long": {
+    "path": "results/tables/kscale_transfer_long.csv",
+    "sha256": "043abd6d709d293a1fb4516c78eeab9966d9c313715fd0d54295e1a74ff6532a",
+    "bytes": 2798
+  },
+  "switching summary": {
+    "path": "results/tables/switching_summary.csv",
+    "sha256": "7e033b9c0fdd392326df607c1cb2fcf7f6656cd1756a25137270ca728e17512d",
+    "bytes": 434
+  },
+  "switching paired vs BFP": {
+    "path": "results/tables/switching_paired_vs_bfp.csv",
+    "sha256": "3cea31e6663503946bc00b7a1a602e530c4b2bdbf9395d37a4e90474681e4a75",
+    "bytes": 154
+  },
+  "efficiency bench": {
+    "path": "runs/bench/bench_C1200.0_k24.csv",
+    "sha256": "01c544940d15e208c4cf41bbeb566bcf7b90489c61ef9d3536d3bb1276aeed60",
+    "bytes": 836
+  }
+}
