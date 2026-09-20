@@ -7,7 +7,11 @@
 % author before submission. See HUMAN_REWRITE_CHECKLIST.md.
 % Do NOT treat wording, emphasis, framing or title as author-approved.
 % Author list / affiliation / contact / ORCID / funding: NOT FILLED.
-% =====================================================================
+%
+% Figures Fig.~overview and Fig.~structures are COMPILABLE PLACEHOLDERS
+% (framed boxes), not final artwork; replace with the drawn figures before
+% submission. See FINAL_SUBMISSION_GATE.md.
+%
 % ICASSP 2027 manuscript. Tables/figures are auto-generated from result CSVs by
 % scripts/make_paper_assets.py into assets/; missing assets render as "(pending)"
 % so the document always compiles and never contains a hand-typed result.
@@ -20,6 +24,9 @@
 % ---- include an auto-generated table only if it exists ----
 \newcommand{\inputtable}[1]{\IfFileExists{assets/tables/#1}{\input{assets/tables/#1}}{\emph{(table pending: \detokenize{#1})}}}
 \newcommand{\figpdf}[2]{\IfFileExists{assets/figs/#1}{\includegraphics[width=#2]{assets/figs/#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}(figure pending: \detokenize{#1})\vspace{1em}}}}}
+% ---- compilable figure placeholder (not final artwork) ----
+\newcommand{\figplaceholder}[3]{\fbox{\parbox[c][#2][c]{0.92\columnwidth}{\centering\footnotesize\itshape
+  Figure placeholder\\[2pt]\normalfont\textbf{#1}\\[3pt]\normalfont #3}}}
 
 \title{AUDITING STRUCTURED POLICY LEARNING FOR STREAMING TRANSACTION
 COLLATERAL CONTROL: FACTORIZATION, CONDITIONING, AND CROSS-SCALE TRANSFER}
@@ -69,35 +76,63 @@ permutation equivariance, online decision making.
 \section{Introduction}
 Off-chain payment networks such as the Lightning Network~\cite{poon2016lightning}
 process high-rate transaction streams over wallets backed by finite collateral.
-A controller observes the current transaction and wallet state, then either
-settles it into a wallet with sufficient free balance or drops it; it may also
-flush (empty and recharge) one wallet, incurring a fee and a short cooldown.
-Collateral $C$ is partitioned into $k$ wallets, so capacity is per-wallet, not
-shared: the controller must decide \emph{where} to settle and \emph{when/what}
-to flush under non-stationary, bursty traffic. Prior control schemes use fixed
-heuristics; recent work proposes learning the controller with policy
-optimization over a structured action space.
+Every few milliseconds a transaction arrives carrying a requested value, and the
+node must \emph{immediately} decide where to route it: settle it into one of
+$k$ wallets that currently holds enough free balance, or reject (drop) it.
+Independently, it may \emph{flush} one wallet---empty and recharge it at a fixed
+fee and with a short cooldown during which the wallet cannot accept funds. This
+is an inherently \emph{sequential} online decision: today's flush frees capacity
+for tomorrow's arrivals but costs money and briefly removes a wallet from
+service, while greedily accepting now can starve a later, larger transaction.
+Collateral $C$ is partitioned \emph{per wallet} rather than pooled, so the
+controller must jointly reason about \emph{where} value lands and
+\emph{when/what} to empty under non-stationary, bursty traffic with no lookahead
+to future arrivals.
 
-We treat that line as a hypothesis to audit rather than a result to defend:
-\emph{which structural inductive biases actually matter for online collateral
-control---a joint versus factored action head, a settle-conditioned flush
-head, a $k$-invariant encoder---and does learning beat a strong, cheap
-feedback rule?} Re-implementing the environment and policies, we benchmark
-against a validation-tuned rule (not only naive heuristics), add mechanism
-ablations, and redesign the encoder for the deployment reality that the number
-of wallets can change. The environment and twelve-regime generator are a
-faithful port of the prior manuscript; JA-PPO/IFAC/SC-FAC and their
-hyperparameters are re-implementations (the manuscript omits them); the strong
-rule, the conditioning ablations, and the equivariant set encoder are this
-study's additions. Our findings are deliberately reported whether positive or
-null:
+This structure makes naive policy parameterization costly. A joint categorical
+controller emits one logit for every (settle, flush) pair, i.e.
+$(k{+}1)^2$ outputs at $k=24$, conflating two decisions that are only weakly
+coupled and squandering samples on illegal or dominated combinations.
+\emph{Factorization} is therefore the natural structural move: predict the
+settle wallet and the flush wallet as two smaller $k{+}1$-way heads, dropping
+the output count to $2(k{+}1)$. One can then ask whether the residual coupling
+matters at all---specifically, whether conditioning the flush decision on the
+\emph{chosen} settlement wallet (a directed information path
+settle$\to$flush) adds value, or whether the two choices are already
+independent under the reward. We treat even that plausible mechanism as a
+hypothesis to test, not a feature to assume.
+
+Deployment adds a second structural question. The number of wallets $k$ is an
+operating condition that can change between deployments, yet a flat multilayer
+perceptron bakes $k$ into its weight shapes: a model trained at one $k$ cannot
+even be loaded at another. Encoding the wallets as an unordered set with a
+shared, permutation-equivariant function removes all $k$-dependent parameters
+and allows one trained policy to be deployed zero-shot at a new wallet count.
+Whether such portability comes at an accuracy cost at the original scale is
+again an empirical question, not a given.
+
+Finally, learned controllers must be audited against a baseline that is
+actually strong. Prior comparisons use only trivial rules (flush everything, or
+flush when full), which a learner beats easily and which do not use the most
+informative available signal---current wallet fill. We instead tune a simple
+balance-feedback threshold on validation data and put it on equal footing with
+the learned policies. This turns the paper from ``yet another RL policy'' into
+an audit of \emph{which structural inductive biases genuinely help online
+collateral control}: does factoring the action help, does settle-conditioning
+add anything, does an equivariant encoder buy deployability, and can learning
+beat a cheap feedback rule that observes the same state? We answer these on a
+faithful port of the prior manuscript's environment and twelve-regime generator
+with matched seeds and paired confidence intervals, reporting null results as
+prominently as positive ones.
+
+\noindent Our contributions are:
 \begin{itemize}
 \item A faithful, tested re-implementation of the environment and the
 twelve-regime traffic generator, and of three PPO policies---\textbf{JA-PPO}
 (joint action over $(k{+}1)^2$ outcomes), \textbf{IFAC} (independent settle and
 flush heads, $2(k{+}1)$ outputs), and \textbf{SC-FAC} (flush head conditioned
-on the chosen settlement wallet). We report the environment as a faithful port
-and the learned policies/hyperparameters as re-implementations.
+on the chosen settlement wallet). The environment is a faithful port; learned
+policies and unspecified hyperparameters are documented re-implementations.
 \item A \textbf{permutation-equivariant set encoder} (shared per-wallet
 function + pooling + per-wallet logits, in the spirit of Deep
 Sets~\cite{zaheer2017deepsets}) with no parameter that depends on $k$, which
@@ -108,9 +143,9 @@ signal over matched seeds; they find no detectable Money benefit from the
 settle$\to$flush path at the tested flush price---an honest null result.
 \item An \textbf{honest strong baseline}: a validation-selected best-fit
 threshold rule that attains zero avoidable drops, is robust to regime shifts,
-and attains the highest Money at every capacity, significantly beating the
-learned policies in nearly all paired comparisons. We report where learning
-does---and, more often, does not---beat it.
+and attains the highest Money at every capacity, beating the learned policies
+in nearly all paired comparisons. We report where learning does---and, more
+often, does not---beat it.
 \end{itemize}
 
 \section{Streaming collateral control}
@@ -118,48 +153,103 @@ does---and, more often, does not---beat it.
 wallets of capacity $C/k$. At each of $T=1000$ decisions a transaction of size
 $x_t\in[0,1000]$ arrives. The agent picks a settle wallet $a_s\in[0,k]$ and a
 flush wallet $a_f\in[0,k]$, where index $k$ is a null (no-op). A flush executes
-first, emptying a wallet and making it unavailable for $F{=}3$ decisions before
-it refills to full; then the transaction is accepted if $a_s$ is usable and has
-free balance $\ge x_t$. Drops are attributed as \emph{oversize} ($x_t>C/k$,
-physically impossible), \emph{frozen} (cooldown), or \emph{avoidable}
-(insufficient/conflict that a proactive flush could have prevented). The
-observation is $3k{+}2$: per-wallet normalized balance, availability, and
-cooldown, plus $x_t$ normalized and time progress.
+\emph{first}, emptying a wallet and making it unavailable for $F{=}3$ decisions
+before it refills to full; the transaction is then accepted if $a_s$ is usable
+and has free balance $\ge x_t$. This order is what couples the two choices in a
+single step: flushing the wallet into which value is about to settle causes the
+transaction to be dropped. Drops are attributed as \emph{oversize}
+($x_t>C/k$, physically impossible for any policy), \emph{frozen} (cooldown), or
+\emph{avoidable} (insufficient balance or a flush/settle conflict that a
+proactive flush could have prevented). Reporting drops by cause lets us separate
+the structural floor that no controller can remove from the avoidable fraction
+that measures control quality. The observation is $3k{+}2$: per-wallet
+normalized balance, availability, and cooldown, plus $x_t$ normalized and a
+time-progress scalar (Fig.~\ref{fig:overview}).
 
-\textbf{Objective.} Money is $M=p\cdot\sum\!\text{accepted}_x-\tau\cdot\#\text{flushes}$
-with $p=1,\tau=10$; episodic PPO~\cite{schulman2017ppo} with GAE
-advantages~\cite{schulman2015gae} optimizes the policy. \textbf{Data.}
-Episodes are drawn from twelve regimes spanning steady/large transactions and
-burst traffic (calibrated to a target mean), with fixed seeds; 5000 training,
-300 validation, and 200 test episodes per regime. All hyperparameters not given
-by the prior manuscript are fixed from validation pilots, never from test.
+\textbf{Objective.} Per-episode Money is
+$M=p\!\cdot\!\sum\!\text{accepted}_x-\tau\!\cdot\!\#\text{flushes}$ with
+acceptance price $p=1$ and flush fee $\tau=10$, so accepting value and spending
+flushes trade off directly in one scalar rather than through separate metrics.
+Episodic PPO~\cite{schulman2017ppo} with generalized advantage
+estimation~\cite{schulman2015gae} optimizes a stochastic policy; evaluation
+uses the deterministic (argmax) policy on fixed pools.
+
+\textbf{Data.} Episodes are drawn from twelve regimes spanning steady and
+large-transaction traffic and correlated bursts (calibrated to a target mean),
+all generated with fixed seeds: 5000 training, 300 validation, and 200 test
+episodes per regime. Every method and seed is evaluated on the \emph{same}
+deterministic test pools, so cross-policy comparisons are paired at the episode
+level. All hyperparameters absent from the prior manuscript are fixed from
+validation pilots, never from the test set; failed seeds are retained rather
+than discarded.
+
+\begin{figure}[t]
+\centering
+\figplaceholder{Problem / environment overview}{1.45in}{%
+Intended artwork: a transaction stream $x_1,x_2,\dots$ arriving over time
+above a row of $k$ capacity-limited wallets; one arrow shows a \emph{settle}
+into a wallet, another shows a \emph{flush} (fee $\tau$, cooldown $F{=}3$);
+annotate accepted value $p\,x_t$, oversize vs.\ avoidable drops, and the
+partitioned collateral $C/k$.}
+\caption{Streaming collateral control. Each arriving transaction is settled
+into one of $k$ capacity-partitioned wallets or dropped; the controller may
+additionally flush one wallet at fee $\tau$. Flush executes before settle.}
+\label{fig:overview}
+\end{figure}
 
 \section{Policies}
-\noindent\textbf{JA-PPO} emits a categorical over all $(a_s,a_f)$ pairs,
-i.e.\ $(k{+}1)^2{=}625$ logits at $k{=}24$, conflating the two decisions.
-\textbf{IFAC} factors the action into two independent $k{+}1$ categoricals
-(50 logits). \textbf{SC-FAC} factors but routes an embedding of the \emph{chosen}
-settle wallet into the flush head, so flushing can depend on where value was
-just placed. Two ablations share its architecture: \textbf{no-cond.} zeroes the
-settle embedding, and \textbf{shuffled} feeds a deranged (wrong) wallet
-embedding.
+\noindent\textbf{JA-PPO} emits one categorical over all settle/flush
+pairs: $(k{+}1)^2$ logits ($625$ at $k{=}24$). This treats the step as a single
+large joint decision, which both inflates the output layer and forces the
+network to allocate probability mass to combinations that are invalid (flushing
+and settling the same wallet) or obviously dominated.
 
-\noindent\textbf{Set encoder.} The $k$ wallets are an unordered set, yet a flat
-MLP treats wallet slots as a fixed-length ordered vector and ties its weights
-to $k$. We encode each wallet with a shared function
-$h_i=\phi(\text{balance}_i,\text{avail}_i,\text{cooldown}_i,g)$ of the wallet
-state and two global scalars, pool $\{h_i\}$, and produce per-wallet settle and
-flush logits. The map is equivariant to wallet permutations (proven by tests),
-and no layer's size depends on $k$, so weights trained at one $k$ load and run
-at another. The settle-conditioned set variant gathers the feature of the
-chosen settle wallet into the flush head.
+\noindent\textbf{IFAC} factors the action into two independent $k{+}1$
+categoricals (50 logits), $\pi(a_s,a_f\mid s)=\pi_s(a_s\mid s)\,\pi_f(a_f\mid
+s)$. This removes the quadratic joint head, encodes the weak-coupling prior
+between the two sub-decisions, and shares the trunk representation. It also
+makes each sub-decision cheaper to learn: most settle/flush combinations are
+never observed, while each head sees its own signal at every step.
 
-\begin{figure}[htb]
+\noindent\textbf{SC-FAC} keeps the factorization but routes an embedding of the
+\emph{chosen} settle wallet into the flush head,
+$\pi_f(a_f\mid s,a_s)$, so flushing can in principle depend on where value was
+just placed. The mechanism it is designed to capture is targeted liquidity
+management---flushing a wallet other than the one just funded---and is the one
+``extra'' inductive bias whose payoff is genuinely uncertain. Two ablations
+share its architecture exactly: \textbf{no-cond.} zeroes the settle embedding,
+and \textbf{shuffled} feeds a deranged (wrong-wallet) embedding. Comparing the
+three under matched seeds isolates whether the information path carries any
+causal value.
+
+\noindent\textbf{Set encoder.} The $k$ wallets are intrinsically an unordered
+set: permuting wallet identities must not change the decision. A flat MLP
+violates this implicitly by treating wallet slots as an ordered, fixed-length
+vector, and---more importantly for deployment---ties every hidden weight to the
+input width and hence to $k$. We instead encode each wallet with a shared
+function $h_i=\phi(\text{balance}_i,\allowbreak\text{avail}_i,\allowbreak\text{cooldown}_i,g)$ of its
+state and two global scalars, pool $\{h_i\}$ symmetrically, and produce
+per-wallet settle/flush logits (Fig.~\ref{fig:structures}). The map is
+permutation-equivariant by construction (verified by unit tests), and no layer
+size depends on $k$; this \emph{$k$-independence} is exactly the property a
+flat network lacks, and it is what lets weights trained at one wallet count be
+loaded and executed---without retraining---at another. The settle-conditioned
+set variant gathers the chosen settle wallet's feature into the flush head.
+
+\begin{figure}[t]
 \centering
-\figpdf{output_scaling.pdf}{0.44\columnwidth}
-\caption{Output logits vs.\ wallets $k$: joint $(k{+}1)^2$ vs.\ factorized
-$2(k{+}1)$.}
-\label{fig:logits}
+\figplaceholder{Policy-structure comparison}{1.75in}{%
+Intended artwork: four small schematics sharing one state trunk ---
+\textbf{JA-PPO}: one $(k{+}1)^2$ joint softmax; \textbf{IFAC}: two independent
+$k{+}1$ heads (settle, flush); \textbf{SC-FAC}: flush head additionally takes
+an embedding of the chosen settle wallet $a_s$ (dashed settle$\to$flush edge);
+\textbf{Set}: shared per-wallet $\phi$ + symmetric pooling, with no
+$k$-shaped weight. Annotate output counts $625$ vs.\ $50$.}
+\caption{Action parameterizations. JA-PPO uses a quadratic joint head; IFAC
+uses two linear factorized heads; SC-FAC adds a settle-conditioned edge to the
+flush head; the set variant replaces $k$-shaped trunk weights with a shared
+equivariant encoder, enabling zero-shot cross-$k$ deployment.}
+\label{fig:structures}
 \end{figure}
 
 \begin{table}[htb]
@@ -172,23 +262,31 @@ Set-encoder params are independent of $k$ (transferable).}
 \end{table}
 
 \section{Experiments}
-We evaluate deterministic policies on the fixed test pools. Model and
-training choices are made on validation only; we keep failed seeds and report
-negatives. \emph{Baselines} are the native one-flush references FA and FWF
-(reconstructed, since the reference uses a multi-flush design), a rotation
-rule, and the strong \textbf{BFP0.5}: best-fit routing that proactively flushes
-the fullest usable wallet once its fill crosses a threshold $0.5$, chosen on
-validation. We also construct an oracle feasible value (transactions that fit
-some wallet).
+We evaluate deterministic policies on fixed, shared test pools. Model and
+training choices are made on validation only; failed seeds and null results are
+retained. \emph{Baselines} are the native one-flush references FA and FWF
+(reconstructed, since the reference design used multiple flushes per step), a
+rotation rule, and the strong \textbf{BFP0.5}: best-fit routing that
+proactively flushes the fullest usable wallet once its fill crosses a
+threshold $0.5$, chosen on validation. We also compute an oracle feasible value
+(transactions that fit at least one wallet) and decompose drops by cause.
+Results are organized around five questions: whether factorization beats the
+joint head; whether conditioning adds anything; whether equivariance buys
+cross-$k$ transfer and at what cost; who is reliable under abrupt regime
+shifts; and whether the structural changes improve parameter/output efficiency.
 
-\noindent\textbf{Stationary performance.} Table~\ref{tab:main} reports Money per
-capacity with seed-level paired contrasts in Table~\ref{tab:paired}; the
-structural floor of oversize drops is $\approx400$ per episode for every method.
-Two robust effects and one null emerge. \emph{Factorization helps:}
-SC-FAC significantly outperforms JA-PPO at all four capacities
-($p\!\le\!0.013$, $5/5$ seeds); IFAC also outperforms JA-PPO at
-$C\!\in\!\{800,900,1200\}$ ($p\!\le\!0.033$) but \emph{not} at $C{=}1000$
-($p{=}0.57$). \emph{Conditioning does not add Money:} the SC-FAC$-$IFAC paired
+\noindent\textbf{Stationary performance: does factorization help?}
+Table~\ref{tab:main} reports Money per capacity and
+Table~\ref{tab:paired} the seed-level paired contrasts at $C{=}1200$; the
+structural oversize floor is $\approx400$ drops per episode for \emph{every}
+method, so the differences live in the avoidable fraction. Two robust effects
+and one null emerge. \emph{Factorization helps:} SC-FAC significantly
+outperforms JA-PPO at all four capacities ($p\!\le\!0.013$, $5/5$ seeds), and
+IFAC outperforms JA-PPO at $C\!\in\!\{800,900,1200\}$ ($p\!\le\!0.033$) but
+\emph{not} at $C{=}1000$ ($p{=}0.57$). The mechanism interpretation is direct:
+avoidable drops fall from $77$/episode (JA-PPO) to $49.5$ (IFAC) and $40.4$
+(SC-FAC), exactly the failure mode the smaller, better-coupled heads should
+remove. \emph{Conditioning does not add Money:} the SC-FAC$-$IFAC paired
 difference has a 95\% CI including zero at $C\!\in\!\{900,1000,1200\}$, and at
 $C{=}800$ SC-FAC is significantly \emph{lower} than IFAC ($-419$, $p{=}0.009$);
 SC-FAC accepts marginally more value but spends more flushes, which cancels the
@@ -198,7 +296,7 @@ advantage is significant in $11/12$ method-capacity contrasts; the sole
 exception is vs.\ IFAC at $C{=}1000$ ($+2545$, $p{=}0.057$, CI crossing zero),
 which BFP0.5 nevertheless wins on all five seeds. On this balanced i.i.d.\
 workload a single balance-feedback threshold is near-optimal, and a
-3000-episode PPO budget does not beat it.
+3000-episode PPO budget does not beat it (Fig.~\ref{fig:cap}).
 
 \begin{table}[htb]
 \centering
@@ -224,17 +322,20 @@ paired-$t$ 95\% CI, $p$-value, wins over seeds). Positive favors $a$.}
 \begin{figure}[htb]
 \centering
 \figpdf{capacity_curve.pdf}{0.44\columnwidth}
-\caption{Money vs.\ collateral $C$ (solid: learned; dashed: rules).}
+\caption{Money vs.\ collateral $C$ (solid: learned; dashed: rules). BFP0.5
+dominates at every capacity; the factorized policies separate from JA-PPO.}
 \label{fig:cap}
 \end{figure}
 
-\noindent\textbf{Conditioning ablations.} Table~\ref{tab:abl} compares
-SC-FAC against the no-conditioning and shuffled-conditioning variants under
-matched parameters, seeds, and budget. Neither zeroing nor shuffling the
-settle embedding lowers Money detectably: every paired 95\% CI includes zero,
-and at $C{=}1200$ the fully conditioned variant is nominally the lowest of the
-three. The settle$\to$flush path therefore carries no detectable causal Money
-benefit at $\tau{=}10$ in this re-implementation.
+\noindent\textbf{Does settle-conditioning carry causal value?}
+Table~\ref{tab:abl} compares SC-FAC against the no-conditioning and
+shuffled-conditioning variants under matched parameters, seeds, and budget.
+Neither zeroing nor permuting the settle embedding lowers Money detectably:
+every paired 95\% CI includes zero, and at $C{=}1200$ the fully conditioned
+variant is nominally the lowest of the three. A correct but useless wiring is
+not evidence against architecture---it is evidence that, at the tested flush
+price and observation model, knowing the chosen settle wallet is not
+decision-relevant once wallet state is already observed.
 
 \begin{table}[htb]
 \centering
@@ -244,49 +345,43 @@ benefit at $\tau{=}10$ in this re-implementation.
 \label{tab:abl}
 \end{table}
 
-\noindent\textbf{Cross-$k$ transfer.} We train at $k\in\{6,12,24\}$ and deploy
-at every $k$. Table~\ref{tab:transfer} and Fig.~\ref{fig:heat} show that the set
-encoder loads and runs at every deployment $k$ with no retraining, whereas flat
-policies have no off-diagonal entry because their state-dictionary shapes
-change with $k$. The benefit is operational deployability (train once, deploy at
-another scale), not uniformly preserved Money: zero-shot retention is
-asymmetric---strong when moving to larger-wallet/smaller-$k$ operating points
-and weak when a model trained with large wallets meets the small wallets at
-$k{=}24$. At matched $k$ the set encoder is comparable to or above a flat MLP
-at $k{=}6,12$ but lower at $k{=}24$ ($9190$ vs.\ $13610$), so deployability
-comes with a scale-specific accuracy trade-off.
-
-\begin{table}[htb]
-\centering
-\scriptsize
-\inputtable{transfer_set_sc_fac.tex}
-\caption{Money for Set-SC-FAC trained at rows, deployed at columns. Diagonal
-is matched training; off-diagonal is zero-shot cross-$k$ transfer.}
-\label{tab:transfer}
-\end{table}
+\noindent\textbf{Does equivariance buy cross-$k$ transfer?}
+We train at $k\in\{6,12,24\}$ and deploy, with no retraining, at every $k$.
+Fig.~\ref{fig:heat} shows that the set encoder loads and runs at every
+deployment $k$, whereas flat policies have no off-diagonal entry at all because
+their state-dictionary shapes change with $k$. The value of the structure is
+\emph{operational deployability}, not uniformly preserved Money: zero-shot
+retention is asymmetric---strong when moving to larger-wallet/smaller-$k$
+operating points and weak when a model trained with large wallets meets the
+small wallets at $k{=}24$ (e.g.\ $k{=}6{\to}24$ yields $4433$). At matched $k$
+the set encoder is comparable to or above a flat MLP at $k{=}6,12$ but lower at
+$k{=}24$ ($9190$ vs.\ $13610$): portability comes with a scale-specific accuracy
+trade-off, concentrated at the hardest (many small wallets) operating point.
 
 \begin{figure}[htb]
 \centering
 \figpdf{transfer_set_sc_fac.pdf}{0.44\columnwidth}
 \caption{Cross-$k$ transfer matrix (Set-SC-FAC): rows train $k$, columns
-deploy $k$.}
+deploy $k$. Off-diagonal cells are zero-shot (flat MLP has none).}
 \label{fig:heat}
 \end{figure}
 
 \begin{sloppypar}
-\noindent\textbf{Non-stationary streams (OOD).} Trained only on stationary
-pools, every policy is tested on the \emph{same} deterministic episodes spliced
-across regimes at an abrupt change point (six scenarios: calm$\to$burst,
-burst$\to$calm, early and late). Table~\ref{tab:sw} and Fig.~\ref{fig:sw}
-report post-switch avoidable drops and Money. BFP0.5 incurs \emph{zero}
-avoidable drops after every switch and the highest Money, adapting without
-retraining because wallet fill is close to a sufficient statistic. The learned
-policies generalize far better than the naive rules (28--56 vs.\ 144--148
-post-switch drops) but remain significantly worse than BFP0.5 on both drops and
-Money over the paired scenarios ($p\!<\!0.01$; $n{=}3$ seeds); IFAC and SC-FAC
-incur essentially identical post-switch drops ($28.3$). We therefore do \emph{not} observe any switch-adaptation advantage of
-learning over the tuned feedback rule---an honest negative.
-\end{sloppypar}
+\noindent\textbf{Who is reliable under regime shifts?}
+Trained only on stationary pools, every policy is tested on the \emph{same}
+deterministic episodes spliced across regimes at an abrupt change point (six
+scenarios: calm$\to$burst, burst$\to$calm, early and late).
+Table~\ref{tab:sw} reports post-switch avoidable drops and Money. BFP0.5 incurs
+\emph{zero} avoidable drops after every switch and the highest Money, adapting
+without retraining because current fill is close to a sufficient statistic for
+this feedback law. The learned policies generalize far better than the naive
+rules ($28$--$56$ vs.\ $144$--$148$ post-switch drops) but remain significantly
+worse than BFP0.5 on both drops and Money over the paired scenarios
+($p\!<\!0.01$, $n{=}3$ seeds); IFAC and SC-FAC incur essentially identical
+post-switch drops ($28.3$). The defensible reading is that learned policies are
+robust enough not to collapse when the stream changes---but we do
+\emph{not} observe any switch-adaptation advantage of learning over the tuned
+feedback rule, and we deliberately do not claim one.
 
 \begin{table}[htb]
 \centering
@@ -297,52 +392,80 @@ learning over the tuned feedback rule---an honest negative.
 Post-switch avoidable drops and Money.}
 \label{tab:sw}
 \end{table}
+\end{sloppypar}
 
-\begin{figure}[htb]
-\centering
-\figpdf{switching_drops.pdf}{0.40\columnwidth}
-\caption{Post-switch avoidable drops (mean over switch scenarios).}
-\label{fig:sw}
-\end{figure}
+\noindent\textbf{Parameter and output efficiency.}
+Table~\ref{tab:eff} shows the structural payoff independently of Money.
+Replacing the joint head cuts outputs from $625$ to $50$ and the actor from
+$245{,}874$ to $98{,}099$ parameters (IFAC); the set variants use $135$k
+parameters with \emph{no} $k$-dependent tensor and sub-millisecond-per-step CPU
+latency throughout. Factorization therefore yields a representation that is
+smaller and cheaper at the same time as it is statistically stronger than the
+joint head on most capacities.
 
 \section{Discussion and limitations}
-On balanced stationary streams a carefully tuned, extremely simple feedback
-rule attains the highest Money and beats the general-purpose PPO controllers in
-nearly all paired comparisons; the defensible claims for learning are therefore
-structural rather than raw Money. The robust learned effect is
-\emph{factorization}: the settle-conditioned factored head beats the joint head
-at every capacity and the independent factored head at three of four; the
-further settle-conditioning mechanism is a null under our ablation protocol
-and should not be presented as a gain. The most useful
-systems result is the equivariant set encoder's $k$-independence and
-zero-shot cross-$k$ deployability, although we show this is asymmetric and, at
-$k{=}24$, sacrifices matched-scale accuracy. We read the strong rule not as a
-failure of RL in general but as evidence that, with the present observation
-model, wallet fill is close to a sufficient statistic on i.i.d.\ streams;
-learning is most likely to matter only under richer structure (non-i.i.d.\
-predictable bursts, heterogeneous fees/wallets), which we leave to future work.
-Limitations: one flush per step, finite horizon, a fixed fee, no lookahead to
-future arrivals, and single-GPU/CPU PPO with no vectorized rollouts. The
-prior manuscript's learned numbers are treated as reported, not regenerated:
-its environment is a faithful port while the policies and unspecified
-hyperparameters are documented re-implementations chosen on validation.
+The central result is a boundary map for structured policy learning on this
+task, not a blanket win for RL. \emph{Factorization is the reliable learned
+effect}: replacing a quadratic joint head with two linear sub-heads removes
+exactly the avoidable drops the joint head was producing, with gains that
+survive multi-seed paired tests at nearly every capacity and a simultaneous
+reduction in parameters and outputs. \emph{Settle-conditioning is a null}:
+once wallet fill is in the state, the identity of the just-chosen settle
+wallet carries no additional decision-relevant signal at $\tau{=}10$, and both
+the zero and shuffled controls confirm this. We report it as a wiring that is
+plausible but unremunerative here, rather than quietly dropping it.
+
+\emph{Equivariance buys a different currency.} The set encoder's value is not
+matched-$k$ accuracy---it is the ability to ship one trained policy to a
+deployment whose wallet count the training never saw, which a flat MLP
+structurally cannot do. Its weaknesses are honest: transfer is asymmetric, and
+at the hardest point ($k{=}24$ small wallets) the inductive bias costs
+matched-scale accuracy. A practitioner operating one fixed $k$ should prefer
+the flat factorized model; one who must redeploy across changing $k$ gains
+real optionality.
+
+\emph{The strong rule is the paper's uncomfortable finding.} On balanced,
+i.i.d.\ streams with full state observation, a one-line fill-feedback
+threshold reaches zero avoidable drops stationary and after every abrupt
+switch, and beats the learned controllers in nearly every paired comparison.
+This must not be hidden or reframed: it means that on the current observation
+model, wallet fill is close to a sufficient statistic and the residual problem
+is nearly solved by feedback control. It also defines precisely where future
+learning could earn its place---predictable non-i.i.d.\ burst structure that
+fill alone cannot anticipate, heterogeneous wallet sizes or fees that break the
+single-threshold policy, multi-step lookahead under expensive flushes, or
+reward functions deliberately misaligned with accepted value (a candidate
+explanation for SC-FAC's extra flushing that future work could test). Better
+exploration and vectorized, larger-budget PPO training are engineering levers
+toward the same gap; we deliberately do not instantiate an untested
+heterogeneous environment here to manufacture a regime where RL wins.
+
+Limitations are concrete: one flush per step, finite horizon, a single fixed
+fee, no lookahead to future arrivals, homogeneous wallets, and single-process
+PPO without vectorized rollouts; CPU training was also faster than the available
+GPU for these batch-size-one rollouts. The prior manuscript's learned numbers
+are treated as reported, not regenerated: the environment is a faithful port
+while the policies and unspecified hyperparameters are documented
+re-implementations chosen on validation.
 
 \section{Conclusion}
 We audited which structural inductive biases help a learned streaming
-collateral controller. The evidence is clear on three points and null on one.
-Factoring the joint action into separate settle/flush heads gives a
-reproducible gain over the joint head---significant at all four capacities for
-the settle-conditioned variant and at three of four for the independent
-variant---and cuts outputs from $(k{+}1)^2$ to $2(k{+}1)$. Adding a
+collateral controller. The evidence is positive on two points, null on one, and
+sobering on one. Factoring the joint action into separate settle/flush heads
+gives a reproducible gain over the joint head---significant at all four
+capacities for the settle-conditioned variant and at three of four for the
+independent variant---and cuts outputs from $(k{+}1)^2$ to $2(k{+}1)$. Adding a
 settle-conditioned flush path yields no detectable Money gain under
 matched-seed zero/shuffle ablations. A $k$-independent equivariant encoder
 adds genuine operational value---weights deploy zero-shot to unseen wallet
-counts where a flat MLP cannot---at an asymmetric transfer and matched-scale
-cost. Most importantly, on homogeneous stationary streams and across abrupt
-regime switches, one validation-selected feedback rule attains the highest
-Money with zero post-switch avoidable drops and beats the learned controllers
-in nearly every paired comparison; we present this as a target for future
-learning methods rather than conceal it.
+counts where a flat MLP cannot---at an asymmetric transfer and a matched-scale
+cost concentrated at the hardest operating point. Most importantly, on
+homogeneous stationary streams and across abrupt regime switches, one
+validation-selected feedback rule attains the highest Money with zero
+post-switch avoidable drops and beats the learned controllers in nearly every
+paired comparison. We present that rule as the benchmark future learning
+methods must beat, and the audit---what helps, what does not---as the
+contribution.
 
 \vfill\pagebreak
 \bibliographystyle{IEEEbib}
