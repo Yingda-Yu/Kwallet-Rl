@@ -120,3 +120,18 @@ No submission, no final submission PDF, and no upload occur until every
 BLOCKED field is supplied and every AUTHOR CONFIRMATION REQUIRED item is
 explicitly resolved by the human author. `submission_v1_internal.pdf` is never
 uploaded. PR #2 stays draft; no merge into main.
+
+## 6. Figure placeholders that MUST become real artwork before upload
+The narrative-expansion pass (2026-09-20) reserves positions with compilable
+framed placeholders. They render as boxes labelled "Figure placeholder" and are
+NOT final figures; the final PDF must not contain them.
+- **Fig. 1 (`fig:overview`)** -- problem/environment overview: transaction
+  stream, k wallets, settle vs.\ flush, objective/drop intuition.
+- **Fig. 2 (`fig:structures`)** -- policy-structure comparison: JA-PPO joint
+  $(k{+}1)^2$ head; IFAC independent heads; SC-FAC settle-conditioned edge;
+  Set shared equivariant encoder; annotate 625 vs.\ 50 outputs.
+Already real (generated from results): Fig. 3 `fig:cap` (capacity_curve.pdf),
+Fig. 4 `fig:heat` (transfer_set_sc_fac.pdf). Note: output_scaling.pdf and
+switching_drops.pdf remain committed assets but are no longer floated (their
+content is covered by Table 1 / Table 5); re-floating either is optional.
+Status of these two placeholders: **AUTHOR ACTION REQUIRED (artwork)**.
