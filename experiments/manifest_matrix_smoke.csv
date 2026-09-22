@@ -1,0 +1,6 @@
+method,C,k,F,seed,kind,episodes,status,artifact,note,elapsed_wall
+ja_ppo,1200,24,3,123,learned,64,DONE,/data/yingda/Kwallet-Rl/runs/matrix_smoke/eval_ja_ppo_C1200.0_k24_F3_s123.csv,177s,176.5
+FA,1200,24,3,,rule,,DONE,/data/yingda/Kwallet-Rl/runs/matrix_smoke/eval_FA_C1200.0_k24_F3.csv,9s,185.1
+FWF,1200,24,3,,rule,,DONE,/data/yingda/Kwallet-Rl/runs/matrix_smoke/eval_FWF_C1200.0_k24_F3.csv,7s,192.6
+ifac,1200,24,3,123,learned,64,DONE,/data/yingda/Kwallet-Rl/runs/matrix_smoke/eval_ifac_C1200.0_k24_F3_s123.csv,208s,207.9
+sc_fac,1200,24,3,123,learned,64,DONE,/data/yingda/Kwallet-Rl/runs/matrix_smoke/eval_sc_fac_C1200.0_k24_F3_s123.csv,234s,233.9

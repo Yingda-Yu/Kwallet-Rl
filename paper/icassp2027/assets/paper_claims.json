@@ -1,0 +1,388 @@
+{
+  "missing": {},
+  "transfer_retention": {
+    "set_sc_fac": {
+      "diag": 30774.166898148145,
+      "offdiag": 20139.713055555556,
+      "retention_pct": 65.44356869906842
+    }
+  },
+  "sources": {
+    "main": "results/tables/matrix_main_main_table.csv",
+    "paired": "results/tables/matrix_main_paired.csv",
+    "ablation_paired": "results/tables/matrix_ablation_paired.csv",
+    "switching": "results/tables/switching_summary.csv",
+    "switching_paired": "results/tables/switching_paired_vs_bfp.csv",
+    "efficiency": "runs/bench/bench_C1200.0_k24.csv"
+  },
+  "main_money_by_method_C": {
+    "FA": {
+      "800": {
+        "money": 2906.7,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 2772.78
+      },
+      "900": {
+        "money": 4172.4,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 4047.32
+      },
+      "1000": {
+        "money": 5533.4,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 5402.43
+      },
+      "1200": {
+        "money": 8826.0,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 8591.65
+      }
+    },
+    "FWF": {
+      "800": {
+        "money": 2312.3,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 2288.24
+      },
+      "900": {
+        "money": 3481.5,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 3512.46
+      },
+      "1000": {
+        "money": 4713.3,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 4802.56
+      },
+      "1200": {
+        "money": 7640.0,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": 7810.86
+      }
+    },
+    "ROT": {
+      "800": {
+        "money": 2524.4,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "900": {
+        "money": 3708.6,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "1000": {
+        "money": 4956.1,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "1200": {
+        "money": 7905.6,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      }
+    },
+    "BFP0.5": {
+      "800": {
+        "money": 4682.5,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "900": {
+        "money": 7026.6,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "1000": {
+        "money": 9497.4,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      },
+      "1200": {
+        "money": 15326.7,
+        "se": 0.0,
+        "n_seeds": 1,
+        "reported_only_paper": null
+      }
+    },
+    "ja_ppo": {
+      "800": {
+        "money": 3080.1,
+        "se": 144.1,
+        "n_seeds": 5,
+        "reported_only_paper": 3368.57
+      },
+      "900": {
+        "money": 4405.5,
+        "se": 185.5,
+        "n_seeds": 5,
+        "reported_only_paper": 5636.16
+      },
+      "1000": {
+        "money": 6352.5,
+        "se": 35.9,
+        "n_seeds": 5,
+        "reported_only_paper": 8332.27
+      },
+      "1200": {
+        "money": 11893.3,
+        "se": 148.8,
+        "n_seeds": 5,
+        "reported_only_paper": 14443.01
+      }
+    },
+    "ifac": {
+      "800": {
+        "money": 4176.1,
+        "se": 68.9,
+        "n_seeds": 5,
+        "reported_only_paper": 3607.05
+      },
+      "900": {
+        "money": 5465.1,
+        "se": 187.9,
+        "n_seeds": 5,
+        "reported_only_paper": 6347.35
+      },
+      "1000": {
+        "money": 6952.1,
+        "se": 959.6,
+        "n_seeds": 5,
+        "reported_only_paper": 8786.44
+      },
+      "1200": {
+        "money": 13514.1,
+        "se": 96.1,
+        "n_seeds": 5,
+        "reported_only_paper": 14472.93
+      }
+    },
+    "sc_fac": {
+      "800": {
+        "money": 3756.8,
+        "se": 42.9,
+        "n_seeds": 5,
+        "reported_only_paper": 3999.25
+      },
+      "900": {
+        "money": 5404.5,
+        "se": 103.9,
+        "n_seeds": 5,
+        "reported_only_paper": 6627.98
+      },
+      "1000": {
+        "money": 7679.7,
+        "se": 44.6,
+        "n_seeds": 5,
+        "reported_only_paper": 9064.8
+      },
+      "1200": {
+        "money": 13178.5,
+        "se": 259.3,
+        "n_seeds": 5,
+        "reported_only_paper": 14687.65
+      }
+    }
+  },
+  "paired_C1200": [
+    {
+      "contrast": "SC-FAC-IFAC",
+      "mean_diff": -335.5,
+      "ci95": [
+        -1231.1,
+        560.0
+      ],
+      "p": 0.3569,
+      "wins": 1,
+      "n": 5
+    },
+    {
+      "contrast": "IFAC-JA-PPO",
+      "mean_diff": 1620.8,
+      "ci95": [
+        1108.1,
+        2133.5
+      ],
+      "p": 0.0009,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "SC-FAC-JA-PPO",
+      "mean_diff": 1285.3,
+      "ci95": [
+        670.7,
+        1899.9
+      ],
+      "p": 0.0044,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "BFP0.5-SC-FAC",
+      "mean_diff": 2148.1,
+      "ci95": [
+        1428.2,
+        2868.1
+      ],
+      "p": 0.0012,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "BFP0.5-IFAC",
+      "mean_diff": 1812.6,
+      "ci95": [
+        1545.9,
+        2079.3
+      ],
+      "p": 0.0,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "BFP0.5-JA-PPO",
+      "mean_diff": 3433.4,
+      "ci95": [
+        3020.4,
+        3846.5
+      ],
+      "p": 0.0,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "SC-FAC-FA",
+      "mean_diff": 4352.5,
+      "ci95": [
+        3632.5,
+        5072.5
+      ],
+      "p": 0.0001,
+      "wins": 5,
+      "n": 5
+    },
+    {
+      "contrast": "IFAC-FA",
+      "mean_diff": 4688.1,
+      "ci95": [
+        4421.4,
+        4954.8
+      ],
+      "p": 0.0,
+      "wins": 5,
+      "n": 5
+    }
+  ],
+  "ablation_paired": [
+    {
+      "C": 800,
+      "contrast": "SC-FAC-SC(nocond)",
+      "mean_diff": -174.6,
+      "ci95": [
+        -666.1,
+        316.9
+      ],
+      "p": 0.266,
+      "wins": 1,
+      "n": 3
+    },
+    {
+      "C": 800,
+      "contrast": "SC-FAC-SC(shuf.)",
+      "mean_diff": 77.0,
+      "ci95": [
+        -547.6,
+        701.6
+      ],
+      "p": 0.6488,
+      "wins": 2,
+      "n": 3
+    },
+    {
+      "C": 1200,
+      "contrast": "SC-FAC-SC(nocond)",
+      "mean_diff": -284.2,
+      "ci95": [
+        -1678.2,
+        1109.8
+      ],
+      "p": 0.4729,
+      "wins": 1,
+      "n": 3
+    },
+    {
+      "C": 1200,
+      "contrast": "SC-FAC-SC(shuf.)",
+      "mean_diff": -300.7,
+      "ci95": [
+        -1212.1,
+        610.8
+      ],
+      "p": 0.2916,
+      "wins": 1,
+      "n": 3
+    }
+  ],
+  "switching": {
+    "FA": {
+      "money": 8585.5,
+      "post_money": 4232.3,
+      "post_recoverable_drops": 143.78
+    },
+    "FWF": {
+      "money": 7592.7,
+      "post_money": 4074.9,
+      "post_recoverable_drops": 148.38
+    },
+    "BFP0.5": {
+      "money": 15318.9,
+      "post_money": 8206.1,
+      "post_recoverable_drops": 0.0
+    },
+    "ja_ppo": {
+      "money": 11694.5,
+      "post_money": 6114.2,
+      "post_recoverable_drops": 56.0
+    },
+    "ifac": {
+      "money": 13681.5,
+      "post_money": 7219.7,
+      "post_recoverable_drops": 28.31
+    },
+    "sc_fac": {
+      "money": 13108.0,
+      "post_money": 7005.8,
+      "post_recoverable_drops": 28.29
+    }
+  },
+  "switching_learned_minus_BFP0.5": {
+    "ifac": {
+      "d_post_drops": 28.31,
+      "d_money": -1637.4
+    },
+    "ja_ppo": {
+      "d_post_drops": 56.0,
+      "d_money": -3624.4
+    },
+    "sc_fac": {
+      "d_post_drops": 28.29,
+      "d_money": -2210.9
+    }
+  }
+}
