@@ -1,6 +1,25 @@
 # Submission Snapshot — ICASSP 2027 manuscript
 
 Snapshot date: **2026-09-16**
+
+## FINALIZATION ADDENDUM (2026-09-22)
+- Status remains **INTERNAL — NOT READY TO SUBMIT**: author metadata and the
+  human prose rewrite are still blockers. Research/results remain frozen.
+- Current `main.pdf`: **5 pages** (technical content pp.1-4; references only
+  p.5), **281,470 bytes**, SHA256
+  `9bb3ccc8168474538582f59054d59c1cb53970bd5311d658cf102f8933d7f45f`.
+- Fig.1/Fig.2 placeholders replaced with deterministic vector artwork
+  (`scripts/make_concept_figures.py`); bibliography expanded 4 -> 16 verified
+  entries (see FINAL_SUBMISSION_GATE.md).
+- Statistical audit and author rewrite packet added: `STATISTICAL_AUDIT.md`,
+  `AUTHOR_REWRITE_PACKET.md`; three claims are AUTHOR REVIEW REQUIRED.
+- The working abstract is **223 words**, over the 200-word hard cap.
+- Type 3 fonts eliminated (all generated figures use pdf.fonttype=42).
+- Git: merged `origin/main` (no force push); branch ahead 28, behind 0;
+  **PR #2 mergeable, state clean, still draft**.
+- The 2026-09-16 V1 freeze records below are retained for history; their
+  page/byte/hash values are superseded by this addendum.
+
 Status: **INTERNAL AI-ASSISTED DRAFT — NOT READY TO SUBMIT** (author metadata
 and author prose rewrite are blockers). Experiments/statistics are frozen.
 

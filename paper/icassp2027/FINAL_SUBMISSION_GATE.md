@@ -9,12 +9,27 @@ only AFTER the BLOCKED author metadata is supplied.
 Only three states are used below: **READY** / **BLOCKED** /
 **AUTHOR CONFIRMATION REQUIRED**.
 
+## Finalization-pass update (2026-09-22)
+- Fig.1/Fig.2 placeholders RESOLVED (deterministic vector artwork; no raster;
+  no generative images).
+- References expanded 4 -> 16 verified primary sources; all cited.
+- Statistical audit completed (`STATISTICAL_AUDIT.md`); Holm sensitivity and
+  three AUTHOR REVIEW REQUIRED items; the SC-FAC switching claim was corrected.
+- Author guidance: `AUTHOR_REWRITE_PACKET.md` (no LLM final prose).
+- PDF interim QA: 5 pages (tech 1-4, refs p.5); 0 undefined refs/cites;
+  0 overfull boxes; all fonts embedded/subset; no Type 3; ~281 KB.
+- Git divergence resolved (merged origin/main, no force push); PR #2
+  mergeable/clean, still draft.
+- Remaining gates are unchanged: author metadata, human rewrite incl. the
+  223-word abstract (over the 200-word cap), declarations, final QA.
+
+
 ## 1. Gate table (maps to the live ICASSP 2027 submission form)
 
 | CMS field | State | Current value / note |
 |---|---|---|
 | Submission Title (ALL CAPS; must equal PDF exactly) | **READY** | AUDITING STRUCTURED POLICY LEARNING FOR STREAMING TRANSACTION COLLATERAL CONTROL: FACTORIZATION, CONDITIONING, AND CROSS-SCALE TRANSFER (verified all-caps and identical to rendered PDF) |
-| Abstract (<=200 words) | **AUTHOR CONFIRMATION REQUIRED** | 150-word factual candidate (section 3); long working abstract still compiled in main.tex. Author must approve/rewrite; do not paste candidate unapproved. |
+| Abstract (<=200 words) | **AUTHOR CONFIRMATION REQUIRED** | 150-word factual candidate (section 3); compiled working abstract is 223 words (over cap). Author must shorten/approve/rewrite; do not paste candidate unapproved. |
 | Primary Topic | **READY** | 2.2 Reinforcement Learning [ML-REI] |
 | Secondary Topic | **READY** | 2.7.5 Emerging Applications of ML [ML-APP-EMG] |
 | Keywords (<=5; must equal PDF exactly) | **READY** | reinforcement learning; structured policies; resource allocation; permutation equivariance; online decision making (5; identical in main.tex/PDF) |
