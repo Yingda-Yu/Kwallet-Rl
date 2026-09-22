@@ -26,8 +26,9 @@ above the Paper Kit's 100-150 suggestion; it must be shortened.
 > final without review. Every quantitative claim matches the frozen CSVs (see
 > SUBMISSION_SNAPSHOT.md, section 5). A 2026-09-16 fact check corrected one
 > ambiguous sentence (an earlier wording could be read as SC-FAC beating IFAC
-> at three capacities, which the data do not support -- SC-FAC beats IFAC only
-> at C=1000); the sentence now states both factorized policies vs the joint
+> at three capacities, which the data do not support -- no SC-FAC vs IFAC
+> contrast is significant in the positive direction; C=800 is significantly
+> negative); the sentence now states both factorized policies vs the joint
 > head unambiguously.
 
 **2026-09-22 statistical-audit updates to apply before reuse:** Holm
