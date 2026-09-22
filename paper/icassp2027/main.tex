@@ -387,8 +387,9 @@ this feedback law. The learned policies generalize far better than the naive
 rules ($28$--$56$ vs.\ $144$--$148$ post-switch drops). Against BFP0.5, JA-PPO
 and IFAC remain worse on both drops and Money over the paired scenarios
 (one-sample paired tests, $n{=}3$; $p\!<\!0.01$); for SC-FAC the drops
-contrast is weaker ($p\!\approx\!0.09$), though its Money is lower
-($p\!<\!0.05$). IFAC and SC-FAC incur similar post-switch drops ($28.3$). The defensible reading is that learned policies are
+contrast is weak ($p\!\approx\!0.09$), and its Money contrast
+($p\!<\!0.05$ uncorrected) does not survive Holm correction across
+the six switching tests ($p\!\approx\!0.07$). IFAC and SC-FAC incur similar post-switch drops ($28.3$). The defensible reading is that learned policies are
 robust enough not to collapse when the stream changes---but we do
 \emph{not} observe any switch-adaptation advantage of learning over the tuned
 feedback rule, and we deliberately do not claim one.
