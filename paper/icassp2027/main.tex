@@ -24,6 +24,9 @@
 % ---- include an auto-generated table only if it exists ----
 \newcommand{\inputtable}[1]{\IfFileExists{assets/tables/#1}{\input{assets/tables/#1}}{\emph{(table pending: \detokenize{#1})}}}
 \newcommand{\figpdf}[2]{\IfFileExists{assets/figs/#1}{\includegraphics[width=#2]{assets/figs/#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}(figure pending: \detokenize{#1})\vspace{1em}}}}}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{6pt}
+\setlength{\belowcaptionskip}{2pt}
 % ---- compilable figure placeholder (not final artwork) ----
 \newcommand{\figplaceholder}[3]{\fbox{\parbox[c][#2][c]{0.92\columnwidth}{\centering\footnotesize\itshape
   Figure placeholder\\[2pt]\normalfont\textbf{#1}\\[3pt]\normalfont #3}}}
@@ -74,11 +77,14 @@ permutation equivariance, online decision making.
 \end{keywords}
 
 \section{Introduction}
-Off-chain payment networks such as the Lightning Network~\cite{poon2016lightning}
-process high-rate transaction streams over wallets backed by finite collateral.
-Every few milliseconds a transaction arrives carrying a requested value, and the
-node must \emph{immediately} decide where to route it: settle it into one of
-$k$ wallets that currently holds enough free balance, or reject (drop) it.
+Off-chain payment networks such as the Lightning
+Network~\cite{poon2016lightning,miller2019sprites,kolachala2024sok} process
+streams of transactions over wallets backed by finite collateral; routing under
+scarce channel funds has been studied for payment channel
+networks~\cite{sivaraman2020spider}.
+Transactions arrive sequentially, each carrying a requested value, and at every
+arrival the node must decide where to route it: settle it into one of $k$
+wallets that currently holds enough free balance, or reject (drop) it.
 Independently, it may \emph{flush} one wallet---empty and recharge it at a fixed
 fee and with a short cooldown during which the wallet cannot accept funds. This
 is an inherently \emph{sequential} online decision: today's flush frees capacity
@@ -87,13 +93,22 @@ service, while greedily accepting now can starve a later, larger transaction.
 Collateral $C$ is partitioned \emph{per wallet} rather than pooled, so the
 controller must jointly reason about \emph{where} value lands and
 \emph{when/what} to empty under non-stationary, bursty traffic with no lookahead
-to future arrivals.
+to future arrivals. Such sequential decisions are the domain of online
+competitive analysis~\cite{borodin1998online} and of its learning-augmented
+variants~\cite{lykouris2018competitive}. The closest
+formal model, online collateral maintenance with $k$ wallets of capacity $C/k$,
+is analyzed with worst-case competitive guarantees
+in~\cite{almashaqbeh2024competitive}; related online-inventory and
+learning-augmented packing results
+include~\cite{lin2019competitive}.
 
 This structure makes naive policy parameterization costly. A joint categorical
 controller emits one logit for every (settle, flush) pair, i.e.
 $(k{+}1)^2$ outputs at $k=24$, conflating two decisions that are only weakly
-coupled and squandering samples on illegal or dominated combinations.
-\emph{Factorization} is therefore the natural structural move: predict the
+coupled and allocating output capacity to invalid or dominated combinations.
+Branched and factorized action heads have been proposed for exactly this
+reason~\cite{tavakoli2018action}. \emph{Factorization} is therefore the natural
+structural move: predict the
 settle wallet and the flush wallet as two smaller $k{+}1$-way heads, dropping
 the output count to $2(k{+}1)$. One can then ask whether the residual coupling
 matters at all---specifically, whether conditioning the flush decision on the
@@ -112,9 +127,9 @@ Whether such portability comes at an accuracy cost at the original scale is
 again an empirical question, not a given.
 
 Finally, learned controllers must be audited against a baseline that is
-actually strong. Prior comparisons use only trivial rules (flush everything, or
-flush when full), which a learner beats easily and which do not use the most
-informative available signal---current wallet fill. We instead tune a simple
+actually strong. The rule baselines used in the prior manuscript are simple
+ones (flush everything, or flush when full) that do not use the most informative
+available signal---current wallet fill. We instead tune a simple
 balance-feedback threshold on validation data and put it on equal footing with
 the learned policies. This turns the paper from ``yet another RL policy'' into
 an audit of \emph{which structural inductive biases genuinely help online
@@ -185,12 +200,7 @@ than discarded.
 
 \begin{figure}[t]
 \centering
-\figplaceholder{Problem / environment overview}{1.45in}{%
-Intended artwork: a transaction stream $x_1,x_2,\dots$ arriving over time
-above a row of $k$ capacity-limited wallets; one arrow shows a \emph{settle}
-into a wallet, another shows a \emph{flush} (fee $\tau$, cooldown $F{=}3$);
-annotate accepted value $p\,x_t$, oversize vs.\ avoidable drops, and the
-partitioned collateral $C/k$.}
+\figpdf{overview.pdf}{0.88\columnwidth}
 \caption{Streaming collateral control. Each arriving transaction is settled
 into one of $k$ capacity-partitioned wallets or dropped; the controller may
 additionally flush one wallet at fee $\tau$. Flush executes before settle.}
@@ -202,7 +212,11 @@ additionally flush one wallet at fee $\tau$. Flush executes before settle.}
 pairs: $(k{+}1)^2$ logits ($625$ at $k{=}24$). This treats the step as a single
 large joint decision, which both inflates the output layer and forces the
 network to allocate probability mass to combinations that are invalid (flushing
-and settling the same wallet) or obviously dominated.
+and settling the same wallet) or obviously dominated. Structured action
+spaces have been addressed with large-action embeddings~\cite{dulac2015deep},
+parameterized-action hierarchies~\cite{hausknecht2016deep}, action
+branching~\cite{tavakoli2018action}, and neighborhood
+construction~\cite{akkerman2024dynamic}.
 
 \noindent\textbf{IFAC} factors the action into two independent $k{+}1$
 categoricals (50 logits), $\pi(a_s,a_f\mid s)=\pi_s(a_s\mid s)\,\pi_f(a_f\mid
@@ -238,13 +252,7 @@ set variant gathers the chosen settle wallet's feature into the flush head.
 
 \begin{figure}[t]
 \centering
-\figplaceholder{Policy-structure comparison}{1.75in}{%
-Intended artwork: four small schematics sharing one state trunk ---
-\textbf{JA-PPO}: one $(k{+}1)^2$ joint softmax; \textbf{IFAC}: two independent
-$k{+}1$ heads (settle, flush); \textbf{SC-FAC}: flush head additionally takes
-an embedding of the chosen settle wallet $a_s$ (dashed settle$\to$flush edge);
-\textbf{Set}: shared per-wallet $\phi$ + symmetric pooling, with no
-$k$-shaped weight. Annotate output counts $625$ vs.\ $50$.}
+\figpdf{structures.pdf}{0.82\columnwidth}
 \caption{Action parameterizations. JA-PPO uses a quadratic joint head; IFAC
 uses two linear factorized heads; SC-FAC adds a settle-conditioned edge to the
 flush head; the set variant replaces $k$-shaped trunk weights with a shared
@@ -304,8 +312,8 @@ workload a single balance-feedback threshold is near-optimal, and a
 \setlength{\tabcolsep}{3.2pt}
 \inputtable{main_results.tex}
 \caption{Money per episode (mean$\pm$SE over seeds) vs.\ collateral $C$.
-``paper rep.'' is the prior manuscript's reported value (not regenerated).
-Rules need no seeds.}
+Rules need no seeds; prior-manuscript reported values are not shown (they
+remain in the reproduction report).}
 \label{tab:main}
 \end{table}
 
@@ -321,7 +329,7 @@ paired-$t$ 95\% CI, $p$-value, wins over seeds). Positive favors $a$.}
 
 \begin{figure}[htb]
 \centering
-\figpdf{capacity_curve.pdf}{0.44\columnwidth}
+\figpdf{capacity_curve.pdf}{0.40\columnwidth}
 \caption{Money vs.\ collateral $C$ (solid: learned; dashed: rules). BFP0.5
 dominates at every capacity; the factorized policies separate from JA-PPO.}
 \label{fig:cap}
@@ -360,7 +368,7 @@ trade-off, concentrated at the hardest (many small wallets) operating point.
 
 \begin{figure}[htb]
 \centering
-\figpdf{transfer_set_sc_fac.pdf}{0.44\columnwidth}
+\figpdf{transfer_set_sc_fac.pdf}{0.40\columnwidth}
 \caption{Cross-$k$ transfer matrix (Set-SC-FAC): rows train $k$, columns
 deploy $k$. Off-diagonal cells are zero-shot (flat MLP has none).}
 \label{fig:heat}
@@ -370,15 +378,17 @@ deploy $k$. Off-diagonal cells are zero-shot (flat MLP has none).}
 \noindent\textbf{Who is reliable under regime shifts?}
 Trained only on stationary pools, every policy is tested on the \emph{same}
 deterministic episodes spliced across regimes at an abrupt change point (six
-scenarios: calm$\to$burst, burst$\to$calm, early and late).
+scenarios~\cite{gama2014survey}: calm$\to$burst, burst$\to$calm, early and
+late).
 Table~\ref{tab:sw} reports post-switch avoidable drops and Money. BFP0.5 incurs
 \emph{zero} avoidable drops after every switch and the highest Money, adapting
 without retraining because current fill is close to a sufficient statistic for
 this feedback law. The learned policies generalize far better than the naive
-rules ($28$--$56$ vs.\ $144$--$148$ post-switch drops) but remain significantly
-worse than BFP0.5 on both drops and Money over the paired scenarios
-($p\!<\!0.01$, $n{=}3$ seeds); IFAC and SC-FAC incur essentially identical
-post-switch drops ($28.3$). The defensible reading is that learned policies are
+rules ($28$--$56$ vs.\ $144$--$148$ post-switch drops). Against BFP0.5, JA-PPO
+and IFAC remain worse on both drops and Money over the paired scenarios
+(one-sample paired tests, $n{=}3$; $p\!<\!0.01$); for SC-FAC the drops
+contrast is weaker ($p\!\approx\!0.09$), though its Money is lower
+($p\!<\!0.05$). IFAC and SC-FAC incur similar post-switch drops ($28.3$). The defensible reading is that learned policies are
 robust enough not to collapse when the stream changes---but we do
 \emph{not} observe any switch-adaptation advantage of learning over the tuned
 feedback rule, and we deliberately do not claim one.
@@ -467,7 +477,7 @@ paired comparison. We present that rule as the benchmark future learning
 methods must beat, and the audit---what helps, what does not---as the
 contribution.
 
-\vfill\pagebreak
+\clearpage
 \bibliographystyle{IEEEbib}
 \bibliography{refs}
 \end{document}

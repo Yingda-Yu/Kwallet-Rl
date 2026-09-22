@@ -62,11 +62,11 @@ def main_table(exp):
     ax.legend(fontsize=6, ncol=2)
     fig.tight_layout(); fig.savefig(FIG / "capacity_curve.pdf"); plt.close(fig)
 
-    # LaTeX table: rows = method, cols = C (mean +/- se), plus reported col
+    # LaTeX table: rows = method, cols = C (mean +/- se)
     Cs = sorted(df.C.unique())
-    lines = [r"\begin{tabular}{l" + "c" * len(Cs) + "c}",
+    lines = [r"\begin{tabular}{l" + "c" * len(Cs) + "}",
              r"\hline",
-             "method & " + " & ".join(f"$C={int(c)}$" for c in Cs) + r" & paper rep.\\"]
+             "method & " + " & ".join(f"$C={int(c)}$" for c in Cs) + r"\\"]
     for m in RULES + LEARNED:
         g = df[df.method == m].set_index("C")
         cells = []
@@ -77,9 +77,7 @@ def main_table(exp):
                              if r.n_seeds and r.n_seeds > 1 else f"{r.money_mean:.0f}")
             else:
                 cells.append("--")
-        rep = g.reported.dropna()
-        repv = f"{rep.iloc[0]:.0f}" if len(rep) else "--"
-        lines.append(f"{METHOD_LABEL[m]} & " + " & ".join(cells) + f" & {repv}\\\\")
+        lines.append(f"{METHOD_LABEL[m]} & " + " & ".join(cells) + r"\\")
     lines += [r"\hline", r"\end{tabular}"]
     (TAB / "main_results.tex").write_text("\n".join(lines))
     return df, {}
