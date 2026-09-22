@@ -17,8 +17,9 @@ Control: Factorization, Conditioning, and Cross-Scale Transfer
   during data entry; the author's choice is locked.
 
 ## 3. Abstract — AUTHOR REVIEW REQUIRED (not final)
-The compiled `main.tex` currently carries the long working abstract
-(~196-218 words; allowed but above the Paper Kit's 100-150 suggestion).
+The compiled `main.tex` currently carries a **223-word** working abstract
+(measured 2026-09-22), which is ABOVE the 200-word hard form cap and far
+above the Paper Kit's 100-150 suggestion; it must be shortened.
 
 ### 3a. Compact candidate (150 words) — AUTHOR REVIEW REQUIRED
 > Factual draft for the author to edit in their own words. Do **not** paste as
@@ -28,6 +29,13 @@ The compiled `main.tex` currently carries the long working abstract
 > at three capacities, which the data do not support -- SC-FAC beats IFAC only
 > at C=1000); the sentence now states both factorized policies vs the joint
 > head unambiguously.
+
+**2026-09-22 statistical-audit updates to apply before reuse:** Holm
+family-wise correction reduces the independent-head result from 3/4 to 2/4
+capacities (C=900 adjusted p=0.064); the k=24 matched-scale "cost" depends on
+one failed seed (9190 with it, 13785 without, vs 13610 flat); switching
+comparisons against BFP0.5 are not significant for SC-FAC. See
+STATISTICAL_AUDIT.md and AUTHOR_REWRITE_PACKET.md.
 
 Streaming payment channels route each arriving transaction into one of k
 collateral wallets or drop it, periodically flushing a wallet at a fixed fee.
@@ -102,7 +110,9 @@ channels" terms are superseded; do not re-add without dropping one.
 - Was any version previously submitted to ICASSP or another venue? **[FILL]**
 - Is an arXiv/preprint version public? If yes, DOI/URL: **[FILL]**
 - Any overlap text/figures with the prior manuscript must be declared; the old
-  Table II numbers are already kept in a separate "paper rep." column.
+  reported numbers were removed from the submission-paper table and remain
+  only in docs/REPRODUCTION_REPORT.md (the prior manuscript is unpublished
+  and is not cited as prior art).
 
 ## 9. Pre-submit gate (all must be true before any upload)
 - [ ] Author prose rewrite done (HUMAN_REWRITE_CHECKLIST.md).
