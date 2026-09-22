@@ -19,6 +19,8 @@ import pandas as pd
 import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
+matplotlib.rcParams["pdf.fonttype"] = 42
+matplotlib.rcParams["ps.fonttype"] = 42
 
 ROOT = Path(__file__).resolve().parents[1]
 TBL = ROOT / "results" / "tables"
