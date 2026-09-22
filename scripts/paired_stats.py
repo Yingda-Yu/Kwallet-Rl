@@ -107,7 +107,12 @@ def main():
              r"contrast (a$-$b) & $\Delta$Money & 95\% CI & $p$ & wins/$n$\\"]
     for _, r in sub.iterrows():
         ci = f"[{r.lo:.0f},{r.hi:.0f}]" if not np.isnan(r.lo) else "--"
-        p = f"{r.p:.3f}" if not np.isnan(r.p) else "--"
+        if np.isnan(r.p):
+            p = "--"
+        elif r.p < 0.001:
+            p = "$<0.001$"
+        else:
+            p = f"{r.p:.3f}"
         lines.append(f"{r.contrast} & {r.mean_diff:.0f} & {ci} & {p} & "
                      f"{r.wins}/{r.n}\\\\")
     lines += [r"\hline", r"\end{tabular}"]

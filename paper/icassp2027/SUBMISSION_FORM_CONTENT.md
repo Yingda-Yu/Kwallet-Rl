@@ -3,6 +3,7 @@
 > This file only organizes the fields to enter in the ICASSP 2027 submission
 > system. **No web submission has been or will be performed by the assistant.**
 > Items marked **AUTHOR-CONFIRMED** are locked by the author (2026-09-16);
+> author list/order/affiliations/corresponding are CONFIRMED (2026-09-22);
 > items marked **BLOCKED** or **AUTHOR REVIEW REQUIRED** must still be supplied.
 
 ## 1. Title — AUTHOR-CONFIRMED (2026-09-16)
@@ -17,9 +18,12 @@ Control: Factorization, Conditioning, and Cross-Scale Transfer
   during data entry; the author's choice is locked.
 
 ## 3. Abstract — AUTHOR REVIEW REQUIRED (not final)
-The compiled `main.tex` currently carries a **223-word** working abstract
-(measured 2026-09-22), which is ABOVE the 200-word hard form cap and far
-above the Paper Kit's 100-150 suggestion; it must be shortened.
+The compiled `main.tex` working abstract was **223 words** (measured
+2026-09-22), ABOVE the 200-word hard form cap and far above the Paper Kit's
+100-150 suggestion. After the 2026-09-22 Holm-corrected wording edits (IFAC
+3/4 -> 2/4 after Holm; SC-FAC switching not significant), the word count needs
+rechecking -- it should be similar or slightly different. It must still be
+shortened to fit the cap.
 
 ### 3a. Compact candidate (150 words) — AUTHOR REVIEW REQUIRED
 > Factual draft for the author to edit in their own words. Do **not** paste as
@@ -31,12 +35,17 @@ above the Paper Kit's 100-150 suggestion; it must be shortened.
 > negative); the sentence now states both factorized policies vs the joint
 > head unambiguously.
 
-**2026-09-22 statistical-audit updates to apply before reuse:** Holm
-family-wise correction reduces the independent-head result from 3/4 to 2/4
-capacities (C=900 adjusted p=0.064); the k=24 matched-scale "cost" depends on
-one failed seed (9190 with it, 13785 without, vs 13610 flat); switching
-comparisons against BFP0.5 are not significant for SC-FAC. See
-STATISTICAL_AUDIT.md and AUTHOR_REWRITE_PACKET.md.
+**2026-09-22 statistical-audit updates now reflected in main.tex:**
+- IFAC vs JA-PPO: 3/4 raw -> 2/4 after Holm family-wise correction
+  (C=900 adjusted p_Holm=0.064).
+- SC-FAC vs JA-PPO: 4/4 raw; all 4 survive Holm.
+- SC-FAC switching: Money raw p=0.035, Holm p=0.069 -> NOT significant.
+- k=24 set-vs-flat: 9190 includes one failed seed; 13785 excluding vs 13610
+  flat -- a sensitivity finding, not a clean negative.
+- Overclaims removed from main.tex: "partially-specified MDP", "near-optimal",
+  "sufficient statistic", "causal value", "adapting without retraining",
+  "deterministic code".
+See STATISTICAL_AUDIT.md and AUTHOR_REWRITE_PACKET.md.
 
 Streaming payment channels route each arriving transaction into one of k
 collateral wallets or drop it, periodically flushing a wallet at a fixed fee.
@@ -57,7 +66,8 @@ benchmark to beat.
 ### 3b. Abstract constraints to re-check after author edit
 - Word target 100-150 (form hard cap typically 200); candidate is 150.
 - Keep every number traceable; do not reintroduce "significant at every
-  capacity" for IFAC or for BFP0.5-vs-all (see claim audit).
+  capacity" for IFAC (only 2/4 survive Holm) or for BFP0.5-vs-all (see claim
+  audit).
 - No author/affiliation in the abstract; no references in the abstract.
 
 ## 4. Keywords — AUTHOR-CONFIRMED (2026-09-16), exactly 5
@@ -71,27 +81,42 @@ Already applied in `main.tex`. The earlier 6-term list (which included
 "out-of-distribution") and the intermediate "policy factorization"/"payment
 channels" terms are superseded; do not re-add without dropping one.
 
-## 5. Paper type / source — BLOCKED (author confirmation)
+## 5. Paper type / source — mostly BLOCKED (author confirmation)
 - Proposed: **Regular conference paper** (4 technical pages + references-only
   page permitted by the 2027 template).
 - Confirm on the form: not special-session; not show-and-tell/demo; not a Grand
   Challenge/SPGC entry (unless intended).
 - Presentation preference (lecture/poster/no preference): **BLOCKED**.
 - Student-paper competition / best-student-paper eligibility: **BLOCKED**.
-- AI-use / generative-AI declaration final wording: **BLOCKED** (a disclosure
-  footnote is present in `main.tex`; wording must be finalized by the author to
-  match the live ICASSP 2027 policy).
+- Industry / Academia / Both: **Academia (READY, 2026-09-22)** -- all authors
+  academic (Wenzhou-Kean University; Northwestern University).
+- AI-use / generative-AI declaration final wording: **AUTHOR CONFIRMATION
+  REQUIRED** (a disclosure footnote is present in `main.tex`; wording must be
+  finalized by the author to match the live ICASSP 2027 policy; see
+  FINAL_SUBMISSION_GATE.md section 1a factual checklist -- do NOT delete or
+  understate).
 - Prior publication / dual submission / arXiv posting: **BLOCKED** (section 8).
 
-## 6. Authors / affiliations / contact / ORCID / funding — BLOCKED (fill all)
+## 6. Authors / affiliations / contact / ORCID / funding
 
-| # | Full name | Order/role (corresp.?) | Affiliation + address | Email | ORCID | Member/grade (if asked) |
-|---|-----------|------------------------|-----------------------|-------|-------|--------------------------|
-| 1 | Yingda Yu (provisional) | first / corresponding? **[CONFIRM]** | **[FILL]** | **[FILL]** | **[FILL]** | **[CONFIRM]** |
-| 2 | **[ADD or delete row]** | | | | | |
-| 3 | **[ADD or delete row]** | | | | | |
+Author list, order, affiliations, and corresponding author are CONFIRMED
+(2026-09-22) and written into `main.tex`. Email, ORCID, and funding remain
+BLOCKED. IEEE member grade, department, and postal address are NOT guessed --
+the author supplies them if the live form requires them.
 
-- Funding / grant / acknowledgment statement: **[FILL]**. If none, the author
+| # | Full name | Affiliation | Corresponding? | Email | ORCID |
+|---|-----------|-------------|----------------|-------|-------|
+| 1 | Yingda Yu | Wenzhou-Kean University | No | **BLOCKED** | **BLOCKED** |
+| 2 | Sijia Zhou | Wenzhou-Kean University | No | **BLOCKED** | **BLOCKED** |
+| 3 | Jiaqi Xuan | Wenzhou-Kean University | No | **BLOCKED** | **BLOCKED** |
+| 4 | Zhentong Ye | Northwestern University | No | **BLOCKED** | **BLOCKED** |
+| 5 | Guanchao Tong | Wenzhou-Kean University | Yes (*) | **BLOCKED** | **BLOCKED** |
+
+- Member/grade (if the form asks): **[CONFIRM by author]** -- not guessed.
+- Department / city / country / postal address (if the form asks):
+  **[CONFIRM by author]** -- not guessed here; the author block in `main.tex`
+  carries affiliation names only.
+- Funding / grant / acknowledgment statement: **BLOCKED**. If none, the author
   must explicitly state "no funding" rather than leave an implied placeholder.
 - Conflict-of-interest / ethics statements, if the form asks: **BLOCKED**.
 - eCopyright is completed after acceptance in the IEEE workflow; do not sign
@@ -120,8 +145,15 @@ channels" terms are superseded; do not re-add without dropping one.
 - [x] Title confirmed (2026-09-16).
 - [x] Primary/secondary topics confirmed (2026-09-16).
 - [x] Five keywords confirmed and applied in main.tex (2026-09-16).
-- [ ] Final abstract approved by author (~100-150 words); candidate ready.
-- [ ] Real author/affiliation/email/ORCID/funding entered in `main.tex`.
-- [ ] Final AI-use disclosure matches the live ICASSP 2027 policy.
+- [x] Author list, order, affiliations, corresponding author confirmed and in
+      main.tex (2026-09-22).
+- [x] Industry / Academia / Both = Academia (2026-09-22).
+- [ ] Final abstract approved by author (~100-150 words); candidate ready;
+      word count needs rechecking after Holm edits.
+- [ ] Real corresponding email / ORCID(s) / funding entered in `main.tex`
+      (still BLOCKED).
+- [ ] Final AI-use disclosure matches the live ICASSP 2027 policy
+      (AUTHOR CONFIRMATION REQUIRED).
+- [ ] Prior-submission / dual-submission status declared (BLOCKED).
 - [ ] PDF rebuilt after metadata/prose changes; QA re-run; snapshot refreshed.
 - [ ] Author explicitly authorizes submission (the assistant will not submit).
