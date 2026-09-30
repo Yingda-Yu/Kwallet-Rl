@@ -1,0 +1,13 @@
+method,C,k,F,seed,kind,episodes,status,artifact,note,elapsed_wall
+sc_nocond,800,24,3,323,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C800.0_k24_F3_s323.csv,4600s,4599.8
+sc_nocond,800,24,3,123,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C800.0_k24_F3_s123.csv,4734s,4734.0
+sc_nocond,800,24,3,532,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C800.0_k24_F3_s532.csv,4122s,8721.6
+sc_shuffled,800,24,3,123,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C800.0_k24_F3_s123.csv,4381s,9115.3
+sc_shuffled,800,24,3,323,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C800.0_k24_F3_s323.csv,4757s,13478.9
+sc_shuffled,800,24,3,532,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C800.0_k24_F3_s532.csv,4786s,13901.6
+sc_nocond,1200,24,3,123,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C1200.0_k24_F3_s123.csv,4799s,18278.3
+sc_nocond,1200,24,3,323,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C1200.0_k24_F3_s323.csv,4582s,18484.0
+sc_nocond,1200,24,3,532,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_nocond_C1200.0_k24_F3_s532.csv,4635s,22913.0
+sc_shuffled,1200,24,3,123,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C1200.0_k24_F3_s123.csv,4696s,23179.8
+sc_shuffled,1200,24,3,323,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C1200.0_k24_F3_s323.csv,4561s,27474.2
+sc_shuffled,1200,24,3,532,learned,3000,DONE,/data/yingda/Kwallet-Rl/runs/matrix_ablation/eval_sc_shuffled_C1200.0_k24_F3_s532.csv,4560s,27740.3

@@ -1,0 +1,11 @@
+submission_v1_internal.pdf — INTERNAL BUILD, NOT FOR FINAL SUBMISSION
+Frozen: 2026-09-16
+This file is byte-identical to the QA'd main.pdf at freeze time and is
+provided ONLY for internal review and the submission-system field preparation
+in SUBMISSION_V1_CHECKLIST.md / SUBMISSION_FORM_CONTENT.md.
+It still contains provisional author metadata ("Yingda Yu" / "Affiliation to
+be confirmed") and AI-assisted prose that the author must rewrite.
+Do NOT upload this file to ICASSP. Rebuild main.pdf after author metadata and
+prose are finalized, then upload that rebuilt file.
+SHA256 (verify against SUBMISSION_SNAPSHOT.md):
+923e23c60388b3e1fcc07ae4d1ce91795652a8a1c95d732cd0ea96f07e9f6d35
